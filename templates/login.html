@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<section class="auth-shell">
+  <section class="card auth-card bg-white rounded-2xl shadow-md p-6 space-y-4">
+    <h1 class="text-xl font-semibold text-gray-900">Login</h1>
+    <form method="post" class="auth-form">
+      <label class="field">Username <input name="username" required></label>
+      <label class="field">Password <input name="password" type="password" required></label>
+      <button type="submit" class="btn btn-primary rounded-full px-4 py-2 bg-red-500 text-white hover:bg-red-600 transition-all duration-200">Login</button>
+    </form>
+    <p class="text-sm text-gray-600"><a href="{{ url_for('auth.register') }}">Create account</a></p>
+    <p class="text-sm text-gray-600"><a href="{{ url_for('events.index') }}">Back to events</a></p>
+  </section>
+</section>
+{% endblock %}

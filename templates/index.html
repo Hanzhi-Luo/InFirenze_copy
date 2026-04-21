@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}InFirenze Events{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+{% endblock %}
+
+{% block content %}
+<section class="card filters-card bg-white rounded-2xl shadow-md p-4">
+  <form id="filters-form" class="filters-row">
+    <div class="filter-control">
+      <input type="date" name="date" aria-label="Date">
+    </div>
+
+    <div class="filter-control" id="time-control">
+      <button type="button" class="filter-trigger" id="time-trigger">
+        <span class="placeholder" id="time-label">Time</span>
+      </button>
+      <div class="multi-menu" id="time-menu">
+        {% for slot in filter_options.time_slots %}
+        <label class="multi-option">
+          <input type="checkbox" name="time_slots" value="{{ slot.value }}">
+          <span>{{ slot.label }}</span>
+        </label>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="filter-control">
+      <select name="area" aria-label="Area">
+        <option value="">Area</option>
+        {% for area in filter_options.areas %}
+        <option value="{{ area }}">{{ area }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="filter-control" id="category-control">
+      <button type="button" class="filter-trigger" id="category-trigger">
+        <span class="placeholder" id="category-label">Category</span>
+      </button>
+      <div class="multi-menu" id="category-menu">
+        {% for category in filter_options.categories %}
+        <label class="multi-option">
+          <input type="checkbox" name="categories" value="{{ category }}">
+          <span>{{ category }}</span>
+        </label>
+        {% endfor %}
+      </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Search</button>
+    <button type="button" id="reset-button" class="btn btn-secondary">Reset</button>
+  </form>
+</section>
+
+<section class="layout gap-4">
+  <section class="card panel left-panel bg-white rounded-2xl shadow-md p-6 space-y-4">
+    <div class="panel-head">
+      <h2 class="text-xl font-semibold text-gray-900">Approved Events</h2>
+      <span id="result-count" class="text-sm text-gray-500">0</span>
+    </div>
+    <div class="route-builder">
+      <div class="route-head">
+        <h3 class="text-base font-semibold text-gray-900">Route Builder</h3>
+        <button type="button" id="route-mode-btn" class="btn btn-secondary">Start Route Builder</button>
+      </div>
+      <p id="route-mode-indicator" class="route-mode-indicator text-sm text-gray-500">Route Mode OFF</p>
+      <ul id="route-list"></ul>
+      <div class="route-actions">
+        <button type="button" id="clear-route-btn" class="btn btn-secondary">Clear route</button>
+        {% if current_user.is_authenticated %}
+        <button type="button" id="save-route-btn" class="btn btn-secondary">Save Route</button>
+        {% endif %}
+        <button type="button" id="build-route-btn" class="btn btn-primary">Build Route</button>
+      </div>
+    </div>
+    <div id="events-list" class="events-list"></div>
+  </section>
+
+  <section class="card panel right-panel bg-white rounded-2xl shadow-md p-6 overflow-hidden">
+    <div class="panel-head">
+      <h2 class="text-xl font-semibold text-gray-900">Map</h2>
+      <span id="map-meta" class="text-sm text-gray-500">0 pins</span>
+    </div>
+    <div id="map"></div>
+  </section>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script>
+  window.APP_CONTEXT = {
+    isAuthenticated: {{ "true" if current_user.is_authenticated else "false" }}
+  };
+</script>
+<script src="{{ url_for('static', filename='route_builder.js') }}"></script>
+{% endblock %}

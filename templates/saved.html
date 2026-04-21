@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Saved{% endblock %}
+
+{% block content %}
+<section class="saved-shell space-y-4">
+  <section class="card panel bg-white rounded-2xl shadow-md p-6 space-y-4">
+    {% include "_back_button.html" %}
+    <div class="panel-head">
+      <h2 class="text-xl font-semibold text-gray-900">Saved Events</h2>
+      <span class="text-sm text-gray-500">{{ saved_events|length }} saved</span>
+    </div>
+    <div class="saved-grid">
+      {% for event in saved_events %}
+      <article class="saved-card">
+        <h3>{{ event.title }}</h3>
+        <p>{{ event.date.isoformat() }} · {{ event.start_time.strftime('%H:%M') }} - {{ event.end_time.strftime('%H:%M') }}</p>
+        <p>{{ event.area }} · {{ event.category }}</p>
+        <div class="saved-actions">
+          <a class="btn rounded-full px-4 py-2 bg-gray-100 hover:bg-gray-200 transition-all duration-200" href="{{ url_for('events.event_detail', event_id=event.id) }}">View</a>
+          <form method="post" action="{{ url_for('events.unsave_event', event_id=event.id) }}">
+            <button class="btn btn-secondary rounded-full px-4 py-2 bg-gray-100 hover:bg-gray-200 transition-all duration-200" type="submit">Unsave</button>
+          </form>
+        </div>
+      </article>
+      {% else %}
+      <p class="empty">No saved events yet.</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="card panel bg-white rounded-2xl shadow-md p-6 space-y-4">
+    <div class="panel-head">
+      <h2 class="text-xl font-semibold text-gray-900">Saved Routes</h2>
+      <span class="text-sm text-gray-500">{{ route_cards|length }} routes</span>
+    </div>
+    <div class="saved-grid">
+      {% for card in route_cards %}
+      <article class="saved-card">
+        <h3>{{ card.route.name }}</h3>
+        <ol class="saved-route-list">
+          {% for event in card.events %}
+          <li>{{ event.title }}</li>
+          {% endfor %}
+        </ol>
+        <div class="saved-actions">
+          <a class="btn btn-primary rounded-full px-4 py-2 bg-red-500 text-white hover:bg-red-600 transition-all duration-200" href="{{ url_for('events.route_page') }}?events={{ card.encoded }}" target="_blank" rel="noopener">View Route</a>
+        </div>
+      </article>
+      {% else %}
+      <p class="empty">No saved routes yet.</p>
+      {% endfor %}
+    </div>
+  </section>
+</section>
+{% endblock %}

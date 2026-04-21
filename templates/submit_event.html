@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+
+{% block title %}Submit Event{% endblock %}
+
+{% block extra_head %}
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+  crossorigin=""
+>
+{% endblock %}
+
+{% block content %}
+<div class="form-center">
+  <section class="card panel form-shell bg-white rounded-2xl shadow-md p-6 space-y-4">
+    {% include "_back_button.html" %}
+    <div class="panel-head">
+      <h2 class="text-xl font-semibold text-gray-900">Submit Event</h2>
+    </div>
+    <form method="post" class="event-form">
+      <div class="location-search">
+        <label class="field">
+          Location
+          <span class="helper-text">Search a place name instead of entering coordinates</span>
+          <div class="location-row">
+            <input id="location_query" name="location_query" type="text" value="{{ form_data.get('location_query', '') }}" placeholder="e.g. Piazza Santo Spirito">
+            <button id="search_location_btn" type="button" class="btn btn-secondary rounded-full px-4 py-2 bg-gray-100 hover:bg-gray-200 transition-all duration-200">Search</button>
+          </div>
+        </label>
+        <p id="location_feedback" class="location-feedback" aria-live="polite"></p>
+        <div class="location-map-wrap">
+          <div id="map"></div>
+        </div>
+      </div>
+
+      <label class="field">Title <input name="title" value="{{ form_data.get('title', '') }}" required></label>
+      {% set image_inputs = form_data.get('image_urls', []) %}
+      <label class="field">
+        Image URL 1
+        <input type="text" name="image_urls" value="{{ image_inputs[0] if image_inputs|length > 0 else '' }}" placeholder="Paste an image link...">
+      </label>
+      <label class="field">
+        Image URL 2
+        <input type="text" name="image_urls" value="{{ image_inputs[1] if image_inputs|length > 1 else '' }}" placeholder="Paste an image link...">
+      </label>
+      <label class="field">
+        Image URL 3
+        <input type="text" name="image_urls" value="{{ image_inputs[2] if image_inputs|length > 2 else '' }}" placeholder="Paste an image link...">
+      </label>
+      <label class="field">
+        Description
+        <textarea name="description" rows="4" maxlength="1200" placeholder="Describe the event...">{{ form_data.get('description', '') }}</textarea>
+      </label>
+      <label class="field">Date <input type="date" name="date" value="{{ form_data.get('date', '') }}" required></label>
+      <label class="field">Start time <input type="time" name="start_time" value="{{ form_data.get('start_time', '') }}" required></label>
+      <label class="field">End time <input type="time" name="end_time" value="{{ form_data.get('end_time', '') }}" required></label>
+      <label class="field">
+        Area
+        <select name="area" required>
+          <option value="">Select area</option>
+          {% for area in area_options %}
+          <option value="{{ area }}" {% if form_data.get('area') == area %}selected{% endif %}>{{ area }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label class="field">
+        Category
+        <select name="category" required>
+          <option value="">Select category</option>
+          {% for category in category_options %}
+          <option value="{{ category }}" {% if form_data.get('category') == category %}selected{% endif %}>{{ category }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label class="field">Selected location <input id="location_name_field" name="location_name" value="{{ form_data.get('location_name', '') }}" readonly></label>
+      <label class="field">Latitude <input id="lat_field" name="lat" type="number" step="any" value="{{ form_data.get('lat', '') }}" required readonly></label>
+      <label class="field">Longitude <input id="lng_field" name="lng" type="number" step="any" value="{{ form_data.get('lng', '') }}" required readonly></label>
+      <button type="submit" class="btn btn-primary rounded-full px-4 py-2 bg-red-500 text-white hover:bg-red-600 transition-all duration-200">Submit (Pending Review)</button>
+    </form>
+  </section>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script
+  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+  crossorigin=""
+></script>
+<script>
+  (function () {
+    const FLORENCE_COORDS = [43.7696, 11.2558];
+    const DEFAULT_ZOOM = 13;
+    const SEARCH_ZOOM = 16;
+
+    const searchBtn = document.getElementById("search_location_btn");
+    const queryInput = document.getElementById("location_query");
+    const latField = document.getElementById("lat_field");
+    const lngField = document.getElementById("lng_field");
+    const locationNameField = document.getElementById("location_name_field");
+    const feedback = document.getElementById("location_feedback");
+    const mapElement = document.getElementById("map");
+
+    if (
+      !searchBtn ||
+      !queryInput ||
+      !latField ||
+      !lngField ||
+      !locationNameField ||
+      !feedback ||
+      !mapElement ||
+      typeof L === "undefined"
+    ) {
+      return;
+    }
+
+    const map = L.map("map").setView(FLORENCE_COORDS, DEFAULT_ZOOM);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    let marker = null;
+
+    const setFeedback = (message, type) => {
+      feedback.textContent = message;
+      feedback.classList.remove("is-success", "is-error", "is-muted");
+      feedback.classList.add(type || "is-muted");
+    };
+
+    const setLocation = (lat, lng, name, shouldCenter = true) => {
+      latField.value = Number(lat).toFixed(6);
+      lngField.value = Number(lng).toFixed(6);
+      locationNameField.value = name || "";
+
+      if (!marker) {
+        marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+        marker.on("dragend", (event) => {
+          const position = event.target.getLatLng();
+          latField.value = Number(position.lat).toFixed(6);
+          lngField.value = Number(position.lng).toFixed(6);
+          if (!locationNameField.value) {
+            locationNameField.value = "Custom map pin";
+          }
+          setFeedback("Marker moved. Coordinates updated.", "is-success");
+        });
+      } else {
+        marker.setLatLng([lat, lng]);
+      }
+
+      if (shouldCenter) {
+        map.setView([lat, lng], SEARCH_ZOOM, { animate: true });
+      }
+    };
+
+    const currentLat = parseFloat(latField.value);
+    const currentLng = parseFloat(lngField.value);
+    if (!Number.isNaN(currentLat) && !Number.isNaN(currentLng)) {
+      setLocation(currentLat, currentLng, locationNameField.value, true);
+    }
+
+    map.on("click", (event) => {
+      const { lat, lng } = event.latlng;
+      setLocation(lat, lng, locationNameField.value || "Custom map pin", false);
+      setFeedback("Map point selected. Coordinates updated.", "is-success");
+    });
+
+    const searchLocation = async () => {
+      const query = queryInput.value.trim();
+      if (!query) {
+        setFeedback("Please enter a place name first.", "is-error");
+        return;
+      }
+
+      setFeedback("Searching location...", "is-muted");
+      searchBtn.disabled = true;
+
+      try {
+        const res = await fetch(`/api/geocode?q=${encodeURIComponent(query)}`);
+        const data = await res.json();
+
+        if (!res.ok) {
+          setFeedback(data.error || "Location not found.", "is-error");
+          return;
+        }
+
+        setLocation(data.lat, data.lng, data.name || data.display_name || "", true);
+        setFeedback(`Location found: ${data.name || data.display_name}`, "is-success");
+      } catch (err) {
+        setFeedback("Unable to reach geocoding service. Please try again.", "is-error");
+      } finally {
+        searchBtn.disabled = false;
+      }
+    };
+
+    searchBtn.addEventListener("click", searchLocation);
+    queryInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        searchLocation();
+      }
+    });
+  })();
+</script>
+{% endblock %}

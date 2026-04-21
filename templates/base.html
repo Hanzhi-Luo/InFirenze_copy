@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}InFirenze{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    {% block extra_head %}{% endblock %}
+  </head>
+  <body class="bg-gray-50 text-gray-900" data-authenticated="{{ 'true' if current_user.is_authenticated else 'false' }}">
+    <header class="app-header bg-white border-b border-gray-200 sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-4 relative">
+        <div class="nav-container">
+          <div class="nav-left">
+            <a href="{{ url_for('events.index') }}" class="brand text-xl font-semibold text-gray-900">InFirenze</a>
+          </div>
+          <div class="nav-right">
+            {% if current_user.is_authenticated %}
+            <a
+              class="avatar-button"
+              href="{{ url_for('auth.profile') }}"
+              aria-label="Open profile"
+              title="{{ current_user.resolved_display_name }}"
+            >
+              <img src="{{ current_user.resolved_avatar_url }}" alt="{{ current_user.resolved_display_name }}">
+            </a>
+            {% else %}
+            <a class="avatar-button" href="{{ url_for('auth.login') }}" aria-label="Login">
+              <img src="/static/default-avatar.svg" alt="Guest avatar">
+            </a>
+            {% endif %}
+            <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation" aria-expanded="false" aria-controls="nav-menu">☰</button>
+          </div>
+          <nav class="nav-menu" id="nav-menu">
+            <a href="{{ url_for('events.index') }}">Home</a>
+            <a href="{{ url_for('events.submit_event') }}">Submit Event</a>
+            {% if current_user.is_authenticated %}
+            <a href="{{ url_for('auth.profile') }}">Profile</a>
+            <a href="{{ url_for('events.my_events') }}">My Submissions</a>
+            <a href="{{ url_for('events.saved_page') }}">Saved</a>
+            {% if current_user.role == 'admin' %}
+            <a href="{{ url_for('admin.dashboard') }}">Admin Dashboard</a>
+            {% endif %}
+            <a href="{{ url_for('auth.logout') }}">Logout</a>
+            {% else %}
+            <a href="{{ url_for('auth.login') }}">Login</a>
+            <a href="{{ url_for('auth.register') }}">Register</a>
+            {% endif %}
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <main class="container max-w-7xl mx-auto px-4 py-6">
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <section class="flash-wrap space-y-2">
+          {% for message in messages %}
+          <p class="flash rounded-2xl bg-white shadow-md border border-gray-200 px-4 py-3 text-sm text-gray-700">{{ message }}</p>
+          {% endfor %}
+        </section>
+        {% endif %}
+      {% endwith %}
+
+      {% block content %}{% endblock %}
+    </main>
+
+    <script>
+      (function () {
+        const toggle = document.getElementById("nav-toggle");
+        const menu = document.getElementById("nav-menu");
+        if (toggle && menu) {
+          toggle.addEventListener("click", () => {
+            menu.classList.toggle("open");
+            toggle.setAttribute("aria-expanded", menu.classList.contains("open") ? "true" : "false");
+          });
+
+          menu.querySelectorAll("a").forEach((link) => {
+            link.addEventListener("click", () => {
+              menu.classList.remove("open");
+              toggle.setAttribute("aria-expanded", "false");
+            });
+          });
+        }
+
+        document.addEventListener("click", function (event) {
+          if (menu && toggle && !menu.contains(event.target) && !toggle.contains(event.target)) {
+            menu.classList.remove("open");
+            toggle.setAttribute("aria-expanded", "false");
+          }
+
+          const button = event.target.closest('[data-role="back-button"]');
+          if (!button) return;
+
+          const fallback = button.dataset.fallback || "{{ url_for('events.index') }}";
+          if (window.history.length > 1) {
+            window.history.back();
+          } else {
+            window.location.assign(fallback);
+          }
+        });
+      })();
+    </script>
+    {% block extra_scripts %}{% endblock %}
+  </body>
+</html>

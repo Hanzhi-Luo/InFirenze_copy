@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+<section class="max-w-4xl mx-auto space-y-6">
+  <section class="card bg-white rounded-2xl shadow-md p-6">
+    <div class="flex flex-col sm:flex-row sm:items-center gap-5">
+      <img
+        src="{{ current_user.resolved_avatar_url }}"
+        alt="{{ current_user.resolved_display_name }}"
+        class="w-24 h-24 rounded-full object-cover border border-gray-200 shadow-sm"
+      >
+      <div class="space-y-1">
+        <h1 class="text-2xl font-bold text-gray-900">{{ current_user.resolved_display_name }}</h1>
+        <p class="text-sm text-gray-500">@{{ current_user.username }}</p>
+        <p class="text-sm text-gray-600">{{ current_user.bio or "Tell people a little bit about your Florence vibe." }}</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="card bg-white rounded-2xl shadow-md p-6">
+    <h2 class="text-lg font-semibold text-gray-900 mb-4">Edit Profile</h2>
+    <form method="post" class="space-y-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <label class="field">
+          Display Name
+          <input name="display_name" value="{{ current_user.display_name or '' }}" placeholder="How others should see your name">
+        </label>
+        <label class="field">
+          Avatar URL
+          <input name="avatar_url" value="{{ current_user.avatar_url or '' }}" placeholder="https://...">
+        </label>
+        <label class="field">
+          Phone
+          <input name="phone" value="{{ current_user.phone or '' }}" placeholder="+39 ...">
+        </label>
+        <label class="field">
+          Email
+          <input name="email" type="email" value="{{ current_user.email or '' }}" placeholder="you@example.com">
+        </label>
+      </div>
+
+      <label class="field">
+        Interests
+        <input name="interests" value="{{ current_user.interests or '' }}" placeholder="Art, food tours, jazz nights...">
+      </label>
+
+      <label class="field">
+        Bio / About Me
+        <textarea name="bio" rows="4" placeholder="Share a short intro...">{{ current_user.bio or '' }}</textarea>
+      </label>
+
+      <div class="flex gap-3">
+        <button type="submit" class="btn btn-primary rounded-full px-4 py-2 bg-red-500 text-white hover:bg-red-600 transition-all duration-200">Save Profile</button>
+        <a href="{{ url_for('events.index') }}" class="btn btn-secondary rounded-full px-4 py-2">Back to Events</a>
+      </div>
+    </form>
+  </section>
+</section>
+{% endblock %}

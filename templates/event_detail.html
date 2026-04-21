@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}{{ event.title }}{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+{% endblock %}
+
+{% block content %}
+<section class="event-detail-shell">
+  {% include "_back_button.html" %}
+
+  <article class="card event-carousel bg-white rounded-2xl shadow-md overflow-hidden">
+    <button type="button" class="carousel-nav prev" id="carousel-prev" aria-label="Previous image">‹</button>
+    <div class="carousel-viewport">
+      <div class="carousel-track" id="carousel-track">
+        {% for image in event_images %}
+        <div class="carousel-slide">
+          <img
+            src="{{ image }}"
+            alt="{{ event.title }} image {{ loop.index }}"
+            class="carousel-img"
+            loading="lazy"
+            referrerpolicy="no-referrer"
+          >
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    <button type="button" class="carousel-nav next" id="carousel-next" aria-label="Next image">›</button>
+    <div class="carousel-dots" id="carousel-dots" aria-label="Image pagination"></div>
+  </article>
+
+  <article class="card panel event-detail-card bg-white rounded-2xl shadow-md p-6 space-y-4">
+    <div class="panel-head">
+      <h1 class="text-2xl font-bold text-gray-900">{{ event.title }}</h1>
+      <span class="status-badge status-{{ event.status }}">{{ event.status }}</span>
+    </div>
+
+    {% if current_user.is_authenticated %}
+    <div class="saved-actions">
+      {% if is_saved %}
+      <form method="post" action="{{ url_for('events.unsave_event', event_id=event.id) }}">
+        <button class="btn btn-secondary" type="submit">Saved</button>
+      </form>
+      {% else %}
+      <form method="post" action="{{ url_for('events.save_event', event_id=event.id) }}">
+        <button class="btn btn-secondary" type="submit">❤️ Save</button>
+      </form>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="event-meta flex flex-wrap gap-2 text-sm text-gray-500">
+      <span>Area: {{ event.area }}</span>
+      <span>Category: {{ event.category }}</span>
+      <span>{{ event.date.isoformat() }} · {{ event.start_time.strftime('%H:%M') }} - {{ event.end_time.strftime('%H:%M') }}</span>
+    </div>
+
+    <section class="section rounded-2xl border border-gray-200 bg-white p-4">
+      <h3 class="text-xl font-semibold text-gray-900">About This Event</h3>
+      {% if event.description %}
+      <p class="text-gray-700 leading-relaxed">{{ event.description }}</p>
+      {% else %}
+      <p class="empty">No detailed description was provided for this event.</p>
+      {% endif %}
+    </section>
+
+    <section class="section rounded-2xl border border-gray-200 bg-white p-4">
+      <h3 class="text-xl font-semibold text-gray-900">Location</h3>
+      <p class="empty">Coordinates: {{ event.lat }}, {{ event.lng }}</p>
+      <div id="event-detail-map" data-lat="{{ event.lat }}" data-lng="{{ event.lng }}" data-title="{{ event.title|e }}"></div>
+    </section>
+  </article>
+
+  <article class="card panel bg-white rounded-2xl shadow-md p-6 space-y-4">
+    <div class="panel-head">
+      <h2 class="text-xl font-semibold text-gray-900">Suggested Events</h2>
+      <span class="text-sm text-gray-500">{{ suggested_events|length }} suggestions</span>
+    </div>
+    <div class="suggested-row">
+      {% for item in suggested_events %}
+      <a class="suggested-card rounded-xl bg-white shadow-sm hover:shadow-md hover:scale-[1.02] transition-all duration-200" href="{{ url_for('events.event_detail', event_id=item.id) }}">
+        <img
+          src="{{ item.image_url or 'https://placehold.co/600x380/e9ecef/4b5563?text=InFirenze+Event' }}"
+          alt="{{ item.title }}"
+          loading="lazy"
+          referrerpolicy="no-referrer"
+        >
+        <div class="suggested-content">
+          <h3>{{ item.title }}</h3>
+          <p>{{ item.date.isoformat() }} · {{ item.start_time.strftime('%H:%M') }} - {{ item.end_time.strftime('%H:%M') }}</p>
+        </div>
+      </a>
+      {% else %}
+      <p class="empty">No suggested events right now.</p>
+      {% endfor %}
+    </div>
+  </article>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  (function () {
+    const track = document.getElementById("carousel-track");
+    const dots = document.getElementById("carousel-dots");
+    const prev = document.getElementById("carousel-prev");
+    const next = document.getElementById("carousel-next");
+
+    if (track && prev && next && dots) {
+      const slides = Array.from(track.querySelectorAll(".carousel-slide"));
+      let index = 0;
+      const singleSlide = slides.length <= 1;
+
+      slides.forEach((slide) => {
+        slide.style.flex = "0 0 100%";
+        slide.style.minWidth = "100%";
+      });
+
+      dots.innerHTML = slides
+        .map(
+          (_slide, dotIndex) =>
+            `<button type="button" class="carousel-dot${dotIndex === 0 ? " is-active" : ""}" data-index="${dotIndex}" aria-label="Go to image ${dotIndex + 1}"></button>`
+        )
+        .join("");
+      const dotButtons = Array.from(dots.querySelectorAll(".carousel-dot"));
+
+      const render = () => {
+        if (slides.length === 0) return;
+        index = Math.max(0, Math.min(index, slides.length - 1));
+        track.style.transform = `translateX(-${index * 100}%)`;
+        prev.classList.toggle("is-disabled", singleSlide || index === 0);
+        next.classList.toggle("is-disabled", singleSlide || index === slides.length - 1);
+        prev.classList.toggle("is-hidden", singleSlide);
+        next.classList.toggle("is-hidden", singleSlide);
+        dots.classList.toggle("is-hidden", singleSlide);
+        dotButtons.forEach((dot, dotIndex) => {
+          dot.classList.toggle("is-active", dotIndex === index);
+        });
+      };
+
+      prev.addEventListener("click", () => {
+        index = Math.max(0, index - 1);
+        render();
+      });
+      next.addEventListener("click", () => {
+        index = Math.min(slides.length - 1, index + 1);
+        render();
+      });
+
+      dots.addEventListener("click", (event) => {
+        const dot = event.target.closest(".carousel-dot");
+        if (!dot) return;
+        const dotIndex = Number(dot.dataset.index);
+        if (!Number.isFinite(dotIndex)) return;
+        index = dotIndex;
+        render();
+      });
+
+      render();
+    }
+
+    const mapEl = document.getElementById("event-detail-map");
+    if (!mapEl || typeof L === "undefined") return;
+
+    const lat = Number(mapEl.dataset.lat);
+    const lng = Number(mapEl.dataset.lng);
+    const title = mapEl.dataset.title || "Event";
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+
+    const map = L.map("event-detail-map").setView([lat, lng], 15);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: "&copy; OpenStreetMap contributors",
+    }).addTo(map);
+    L.marker([lat, lng]).addTo(map).bindPopup(`<strong>${title}</strong>`).openPopup();
+  })();
+</script>
+{% endblock %}

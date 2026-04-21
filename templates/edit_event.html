@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Event{% endblock %}
+
+{% block content %}
+<div class="form-center">
+  <section class="card panel form-shell bg-white rounded-2xl shadow-md p-6 space-y-4">
+    {% include "_back_button.html" %}
+    <div class="panel-head">
+      <h2 class="text-xl font-semibold text-gray-900">Edit Event</h2>
+    </div>
+    {% if event.status == "approved" and current_user.role != "admin" %}
+    <p class="edit-warning">Editing this event will require re-approval by admin.</p>
+    {% endif %}
+    <form method="post" class="event-form">
+      <label class="field">Title <input name="title" value="{{ event.title }}" required></label>
+      <label class="field">Image URL <input type="text" name="image_url" value="{{ event.image_url or '' }}" placeholder="Paste an image link..."></label>
+      <label class="field">
+        Description
+        <textarea name="description" rows="4" maxlength="1200" placeholder="Describe the event...">{{ event.description or '' }}</textarea>
+      </label>
+      <label class="field">Date <input type="date" name="date" value="{{ event.date.isoformat() }}" required></label>
+      <label class="field">Start time <input type="time" name="start_time" value="{{ event.start_time.strftime('%H:%M') }}" required></label>
+      <label class="field">End time <input type="time" name="end_time" value="{{ event.end_time.strftime('%H:%M') }}" required></label>
+      <label class="field">
+        Area
+        <select name="area" required>
+          {% for area in area_options %}
+          <option value="{{ area }}" {% if event.area == area %}selected{% endif %}>{{ area }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label class="field">
+        Category
+        <select name="category" required>
+          {% for category in category_options %}
+          <option value="{{ category }}" {% if event.category == category %}selected{% endif %}>{{ category }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label class="field">Latitude <input name="lat" type="number" step="any" value="{{ event.lat }}" required></label>
+      <label class="field">Longitude <input name="lng" type="number" step="any" value="{{ event.lng }}" required></label>
+      <button type="submit" class="btn btn-primary rounded-full px-4 py-2 bg-red-500 text-white hover:bg-red-600 transition-all duration-200">Save Changes</button>
+    </form>
+  </section>
+</div>
+{% endblock %}

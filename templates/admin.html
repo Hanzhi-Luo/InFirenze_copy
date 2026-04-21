@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<section class="admin-shell space-y-4">
+  <section class="card panel bg-white rounded-2xl shadow-md p-6 space-y-4">
+    <div class="panel-head">
+      <h2 class="text-xl font-semibold text-gray-900">Event Moderation</h2>
+      <span class="text-sm text-gray-500">{{ all_events|length }} total</span>
+    </div>
+
+    <div class="admin-toolbar">
+      <input id="admin-search" type="search" placeholder="Search by title">
+      <select id="admin-area-filter">
+        <option value="">All areas</option>
+        {% for area in area_options %}
+        <option value="{{ area }}">{{ area }}</option>
+        {% endfor %}
+      </select>
+      <select id="admin-category-filter">
+        <option value="">All categories</option>
+        {% for category in category_options %}
+        <option value="{{ category }}">{{ category }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="admin-tabs" id="admin-tabs">
+      <button type="button" class="admin-tab is-active" data-status="pending">
+        Pending ({{ pending_events|length }})
+      </button>
+      <button type="button" class="admin-tab" data-status="approved">
+        Approved ({{ all_events|selectattr('status', 'equalto', 'approved')|list|length }})
+      </button>
+      <button type="button" class="admin-tab" data-status="rejected">
+        Rejected ({{ all_events|selectattr('status', 'equalto', 'rejected')|list|length }})
+      </button>
+    </div>
+
+    <div class="admin-moderation-split">
+      <section class="admin-queue card">
+        <div id="admin-events-grid" class="admin-events-grid">
+          {% for event in all_events %}
+          <article
+            class="event-admin-card"
+            data-event-id="{{ event.id }}"
+            data-status="{{ event.status }}"
+            data-title="{{ event.title|lower }}"
+            data-title-display="{{ event.title }}"
+            data-date="{{ event.date.isoformat() }}"
+            data-time="{{ event.start_time.strftime('%H:%M') }} - {{ event.end_time.strftime('%H:%M') }}"
+            data-area="{{ event.area }}"
+            data-category="{{ event.category }}"
+            data-description="{{ (event.description or 'No description provided.')|e }}"
+            data-image-url="{{ (event.image_url or 'https://placehold.co/900x560/e9ecef/4b5563?text=InFirenze+Event')|e }}"
+            data-lat="{{ event.lat }}"
+            data-lng="{{ event.lng }}"
+            data-creator="{{ (event.creator.resolved_display_name if event.creator else 'Unknown')|e }}"
+            data-edit-url="{{ url_for('admin.edit_event', event_id=event.id) }}"
+            data-approve-url="{{ url_for('admin.approve_event', event_id=event.id) }}"
+            data-reject-url="{{ url_for('admin.reject_event', event_id=event.id) }}"
+            data-detail-url="{{ url_for('events.event_detail', event_id=event.id) }}"
+          >
+            <div class="event-admin-head">
+              <h3>{{ event.title }}</h3>
+              <span class="status-badge status-{{ event.status }}">{{ event.status }}</span>
+            </div>
+            <p class="event-admin-meta">{{ event.date.isoformat() }} · {{ event.start_time.strftime('%H:%M') }} - {{ event.end_time.strftime('%H:%M') }}</p>
+            <p class="event-admin-meta">{{ event.area }} · {{ event.category }}</p>
+          </article>
+          {% endfor %}
+        </div>
+        <p id="admin-empty-state" class="empty admin-empty">No events match the current filters.</p>
+      </section>
+
+      <aside class="admin-preview card" id="admin-preview">
+        <div id="preview-empty" class="admin-preview-empty">
+          <p>Select an event from the moderation queue to preview details.</p>
+        </div>
+        <article id="preview-content" class="admin-preview-content" hidden>
+          <img id="preview-image" class="admin-preview-image" src="" alt="">
+          <div class="admin-preview-head">
+            <h3 id="preview-title"></h3>
+            <span id="preview-status" class="status-badge"></span>
+          </div>
+          <p id="preview-datetime" class="event-admin-meta"></p>
+          <p id="preview-meta" class="event-admin-meta"></p>
+          <p id="preview-description" class="admin-preview-description"></p>
+          <p class="event-admin-meta"><strong>Coordinates:</strong> <span id="preview-coordinates"></span></p>
+          <p class="event-admin-meta"><strong>Submitted by:</strong> <span id="preview-creator"></span></p>
+          <div class="event-admin-actions">
+            <a id="preview-edit" class="btn btn-secondary" href="#">Edit</a>
+            <a id="preview-approve" class="btn btn-primary" href="#">Approve</a>
+            <a id="preview-reject" class="btn btn-danger" href="#">Reject</a>
+            <a id="preview-detail" class="btn btn-ghost" href="#" target="_blank" rel="noopener">Open full event page</a>
+          </div>
+        </article>
+      </aside>
+    </div>
+  </section>
+
+  <section class="card panel bg-white rounded-2xl shadow-md p-6">
+    <div class="panel-head">
+      <h2 class="text-xl font-semibold text-gray-900">User Management</h2>
+      <span class="text-sm text-gray-500">{{ users|length }} users</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Role</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for user in users %}
+          <tr>
+            <td>{{ user.username }}</td>
+            <td>{{ user.role }}</td>
+            <td class="actions">
+              {% if user.role != "admin" %}
+              <a class="btn btn-primary" href="{{ url_for('admin.promote_user', user_id=user.id) }}">Promote to Admin</a>
+              {% endif %}
+              <a class="btn btn-danger" href="{{ url_for('admin.delete_user', user_id=user.id) }}">Delete</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='admin_dashboard.js') }}"></script>
+{% endblock %}
