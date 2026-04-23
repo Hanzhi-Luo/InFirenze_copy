@@ -9,6 +9,8 @@ const buildRouteBtn = document.getElementById("build-route-btn");
 const resetBtn = document.getElementById("reset-button");
 const routeModeBtn = document.getElementById("route-mode-btn");
 const routeModeIndicator = document.getElementById("route-mode-indicator");
+const bottomSheetEl = document.getElementById("home-bottom-sheet");
+const sheetToggleBtn = document.getElementById("sheet-toggle-btn");
 
 const timeControl = document.getElementById("time-control");
 const categoryControl = document.getElementById("category-control");
@@ -109,6 +111,31 @@ function getEventById(id) {
   return eventsData.find((event) => event.id === id);
 }
 
+function isMobileViewport() {
+  return window.matchMedia("(max-width: 1023px)").matches;
+}
+
+function scrollEventCardIntoView(eventId) {
+  const card = eventsListEl.querySelector(`.event-item[data-id="${eventId}"]`);
+  if (!card) return;
+  card.scrollIntoView({
+    behavior: "smooth",
+    block: "nearest",
+    inline: "nearest",
+  });
+}
+
+function ensureSheetExpanded() {
+  if (!bottomSheetEl || !isMobileViewport()) return;
+  if (!bottomSheetEl.classList.contains("is-expanded")) {
+    bottomSheetEl.classList.add("is-expanded");
+    if (sheetToggleBtn) {
+      sheetToggleBtn.setAttribute("aria-expanded", "true");
+    }
+    setTimeout(() => map.invalidateSize(), 230);
+  }
+}
+
 function updateRouteModeUI() {
   if (routeMode) {
     routeModeBtn.textContent = "Exit Route Builder";
@@ -161,19 +188,30 @@ function highlightActiveMarker() {
   if (marker) marker.setIcon(activeIcon);
 }
 
-function setActiveEvent(eventId, centerMap = true) {
+function setActiveEvent(eventId, centerMap = true, options = {}) {
+  const { scrollToCard = true, openPopup = true } = options;
   if (!getEventById(eventId)) return;
   activeEventId = eventId;
   renderEvents();
   highlightActiveMarker();
+  if (scrollToCard) {
+    requestAnimationFrame(() => {
+      scrollEventCardIntoView(eventId);
+    });
+  }
 
   const event = getEventById(eventId);
   if (!event) return;
   if (centerMap) {
     map.setView([event.lat, event.lng], 15, { animate: true });
+    if (isMobileViewport()) {
+      setTimeout(() => {
+        map.panBy([0, -110], { animate: true, duration: 0.35 });
+      }, 100);
+    }
   }
   const marker = markerByEventId.get(eventId);
-  if (marker) marker.openPopup();
+  if (marker && openPopup) marker.openPopup();
 }
 
 function addToRoute(eventId) {
@@ -289,7 +327,8 @@ function renderMap(fitBoundsOnLoad = false) {
       }
     );
     marker.on("click", () => {
-      setActiveEvent(event.id, true);
+      setActiveEvent(event.id, true, { scrollToCard: true, openPopup: true });
+      ensureSheetExpanded();
       if (routeMode) addToRoute(event.id);
     });
     markers.push(marker);
@@ -298,7 +337,14 @@ function renderMap(fitBoundsOnLoad = false) {
   });
 
   if (fitBoundsOnLoad) {
-    map.fitBounds(bounds, { padding: [24, 24] });
+    if (isMobileViewport()) {
+      map.fitBounds(bounds, {
+        paddingTopLeft: [20, 90],
+        paddingBottomRight: [20, 250],
+      });
+    } else {
+      map.fitBounds(bounds, { padding: [24, 24] });
+    }
   }
 
   mapMetaEl.textContent = `${eventsData.length} pins`;
@@ -381,9 +427,9 @@ eventsListEl.addEventListener("click", (event) => {
   const eventId = Number(card.dataset.id);
   if (routeMode) {
     addToRoute(eventId);
-    setActiveEvent(eventId, true);
+    setActiveEvent(eventId, true, { scrollToCard: true, openPopup: true });
   } else {
-    setActiveEvent(eventId, true);
+    setActiveEvent(eventId, true, { scrollToCard: true, openPopup: true });
   }
 });
 
@@ -467,7 +513,20 @@ if (typeof Sortable !== "undefined") {
   });
 }
 
+if (sheetToggleBtn && bottomSheetEl) {
+  sheetToggleBtn.addEventListener("click", () => {
+    const expanded = bottomSheetEl.classList.toggle("is-expanded");
+    sheetToggleBtn.setAttribute("aria-expanded", expanded ? "true" : "false");
+    setTimeout(() => map.invalidateSize(), 230);
+  });
+}
+
+window.addEventListener("resize", () => {
+  setTimeout(() => map.invalidateSize(), 120);
+});
+
 (async function bootstrap() {
+  map.invalidateSize();
   await refreshSavedEventIds();
   await fetchEvents();
 })();

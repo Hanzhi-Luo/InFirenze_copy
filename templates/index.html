@@ -7,84 +7,102 @@
 {% endblock %}
 
 {% block content %}
-<section class="card filters-card bg-white rounded-2xl shadow-md p-3 sm:p-4 min-w-0">
-  <form id="filters-form" class="filters-row">
-    <div class="filter-control">
-      <input type="date" name="date" aria-label="Date">
-    </div>
-
-    <div class="filter-control" id="time-control">
-      <button type="button" class="filter-trigger" id="time-trigger">
-        <span class="placeholder" id="time-label">Time</span>
-      </button>
-      <div class="multi-menu" id="time-menu">
-        {% for slot in filter_options.time_slots %}
-        <label class="multi-option">
-          <input type="checkbox" name="time_slots" value="{{ slot.value }}">
-          <span>{{ slot.label }}</span>
-        </label>
-        {% endfor %}
-      </div>
-    </div>
-
-    <div class="filter-control">
-      <select name="area" aria-label="Area">
-        <option value="">Area</option>
-        {% for area in filter_options.areas %}
-        <option value="{{ area }}">{{ area }}</option>
-        {% endfor %}
-      </select>
-    </div>
-
-    <div class="filter-control" id="category-control">
-      <button type="button" class="filter-trigger" id="category-trigger">
-        <span class="placeholder" id="category-label">Category</span>
-      </button>
-      <div class="multi-menu" id="category-menu">
-        {% for category in filter_options.categories %}
-        <label class="multi-option">
-          <input type="checkbox" name="categories" value="{{ category }}">
-          <span>{{ category }}</span>
-        </label>
-        {% endfor %}
-      </div>
-    </div>
-
-    <button type="submit" class="btn btn-primary w-full md:w-auto">Search</button>
-    <button type="button" id="reset-button" class="btn btn-secondary w-full md:w-auto">Reset</button>
-  </form>
-</section>
-
-<section class="layout gap-3 sm:gap-4 min-w-0">
-  <section class="card panel left-panel bg-white rounded-2xl shadow-md p-3 sm:p-4 lg:p-6 space-y-3 sm:space-y-4 min-w-0">
-    <div class="panel-head">
-      <h2 class="text-lg sm:text-xl font-semibold text-gray-900">Available Events</h2>
-      <span id="result-count" class="text-xs sm:text-sm text-gray-500">0</span>
-    </div>
-    <div class="route-builder">
-      <div class="route-head">
-        <h3 class="text-sm sm:text-base font-semibold text-gray-900">Route Builder</h3>
-        <button type="button" id="route-mode-btn" class="btn btn-secondary w-full sm:w-auto">Start Route Builder</button>
-      </div>
-      <p id="route-mode-indicator" class="route-mode-indicator text-xs sm:text-sm text-gray-500">Route Mode OFF</p>
-      <ul id="route-list"></ul>
-      <div class="route-actions">
-        <button type="button" id="clear-route-btn" class="btn btn-secondary w-full sm:w-auto">Clear route</button>
-        {% if current_user.is_authenticated %}
-        <button type="button" id="save-route-btn" class="btn btn-secondary w-full sm:w-auto">Save Route</button>
-        {% endif %}
-        <button type="button" id="build-route-btn" class="btn btn-primary w-full sm:w-auto">Build Route</button>
-      </div>
-    </div>
-    <div id="events-list" class="events-list"></div>
+<section class="home-layout">
+  <section class="home-map-panel">
+    <div id="map"></div>
   </section>
 
-  <section class="card panel right-panel bg-white rounded-2xl shadow-md p-3 sm:p-4 lg:p-6 overflow-hidden min-w-0">
-    <div class="panel-head">
-      <h2 class="text-lg sm:text-xl font-semibold text-gray-900">Map</h2>
-      <span id="map-meta" class="text-xs sm:text-sm text-gray-500">0 pins</span>
-    </div>
-    <div id="map"></div>
+  <section class="home-overlay">
+    <section class="card filters-card home-filters-card bg-white rounded-2xl shadow-md p-3 sm:p-4 min-w-0">
+      <form id="filters-form" class="filters-row">
+        <div class="filter-control">
+          <input type="date" name="date" aria-label="Date">
+        </div>
+
+        <div class="filter-control" id="time-control">
+          <button type="button" class="filter-trigger" id="time-trigger">
+            <span class="placeholder" id="time-label">Time</span>
+          </button>
+          <div class="multi-menu" id="time-menu">
+            {% for slot in filter_options.time_slots %}
+            <label class="multi-option">
+              <input type="checkbox" name="time_slots" value="{{ slot.value }}">
+              <span>{{ slot.label }}</span>
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="filter-control">
+          <select name="area" aria-label="Area">
+            <option value="">Area</option>
+            {% for area in filter_options.areas %}
+            <option value="{{ area }}">{{ area }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="filter-control" id="category-control">
+          <button type="button" class="filter-trigger" id="category-trigger">
+            <span class="placeholder" id="category-label">Category</span>
+          </button>
+          <div class="multi-menu" id="category-menu">
+            {% for category in filter_options.categories %}
+            <label class="multi-option">
+              <input type="checkbox" name="categories" value="{{ category }}">
+              <span>{{ category }}</span>
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Search</button>
+        <button type="button" id="reset-button" class="btn btn-secondary">Reset</button>
+      </form>
+    </section>
+
+    <section class="home-bottom-sheet" id="home-bottom-sheet">
+      <button
+        type="button"
+        id="sheet-toggle-btn"
+        class="sheet-toggle-btn"
+        aria-controls="home-bottom-sheet"
+        aria-expanded="false"
+      >
+        <span class="sheet-handle"></span>
+      </button>
+
+      <div class="sheet-head">
+        <div>
+          <h2>Available Events</h2>
+          <p class="sheet-subtitle">Tap markers or cards to explore nearby picks</p>
+        </div>
+        <div class="sheet-meta">
+          <span id="result-count">0</span>
+          <span id="map-meta">0 pins</span>
+        </div>
+      </div>
+
+      <div class="sheet-content">
+        <div class="route-builder">
+          <div class="route-head">
+            <h3 class="text-sm sm:text-base font-semibold text-gray-900">Route Builder</h3>
+            <button type="button" id="route-mode-btn" class="btn btn-secondary">Start Route Builder</button>
+          </div>
+          <p id="route-mode-indicator" class="route-mode-indicator text-xs sm:text-sm text-gray-500">Route Mode OFF</p>
+          <ul id="route-list"></ul>
+          <div class="route-actions">
+            <button type="button" id="clear-route-btn" class="btn btn-secondary">Clear route</button>
+            {% if current_user.is_authenticated %}
+            <button type="button" id="save-route-btn" class="btn btn-secondary">Save Route</button>
+            {% endif %}
+            <button type="button" id="build-route-btn" class="btn btn-primary">Build Route</button>
+          </div>
+        </div>
+
+        <div id="events-list" class="events-list"></div>
+      </div>
+    </section>
   </section>
 </section>
 {% endblock %}
