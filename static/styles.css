@@ -289,6 +289,8 @@ body.route-mode-active .events-list .event-item {
 }
 
 #map {
+  position: relative;
+  z-index: 1;
   height: 260px;
   min-height: 260px;
   border-radius: 12px;
@@ -612,6 +614,18 @@ body.route-mode-active .events-list .event-item {
   background: #fff;
   border: 1px solid #ece7e1;
   box-shadow: none;
+}
+
+#map .leaflet-pane {
+  z-index: 400;
+}
+
+#map .leaflet-popup-pane {
+  z-index: 700;
+}
+
+#map .leaflet-popup {
+  z-index: 700;
 }
 
 .event-popup {

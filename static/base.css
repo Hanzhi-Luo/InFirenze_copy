@@ -78,13 +78,20 @@ a {
 }
 
 .app-header {
-  position: sticky;
+  position: fixed;
   top: 0;
-  z-index: 500;
+  left: 0;
+  right: 0;
+  width: 100%;
+  z-index: 1300;
   background: rgba(255, 255, 255, 0.95);
   border-bottom: 1px solid var(--color-line);
   backdrop-filter: blur(8px);
   box-shadow: 0 1px 0 rgba(27, 23, 20, 0.03);
+}
+
+.app-main {
+  padding-top: 76px;
 }
 
 .header-inner {
@@ -402,6 +409,10 @@ textarea {
 }
 
 @media (min-width: 640px) {
+  .app-main {
+    padding-top: 84px;
+  }
+
   body {
     font-size: 0.95rem;
     line-height: 1.55;
