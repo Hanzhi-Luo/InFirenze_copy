@@ -14,10 +14,10 @@
   </head>
   <body class="bg-gray-50 text-gray-900" data-authenticated="{{ 'true' if current_user.is_authenticated else 'false' }}">
     <header class="app-header bg-white border-b border-gray-200 sticky top-0 z-50">
-      <div class="max-w-7xl mx-auto px-4 relative">
+      <div class="max-w-7xl mx-auto px-3 sm:px-4 relative">
         <div class="nav-container">
           <div class="nav-left">
-            <a href="{{ url_for('events.index') }}" class="brand text-xl font-semibold text-gray-900">InFirenze</a>
+            <a href="{{ url_for('events.index') }}" class="brand text-lg sm:text-xl font-semibold text-gray-900">InFirenze</a>
           </div>
           <div class="nav-right">
             {% if current_user.is_authenticated %}
@@ -56,12 +56,12 @@
       </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-4 py-6">
+    <main class="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6 min-w-0 overflow-x-clip">
       {% with messages = get_flashed_messages() %}
         {% if messages %}
         <section class="flash-wrap space-y-2">
           {% for message in messages %}
-          <p class="flash rounded-2xl bg-white shadow-md border border-gray-200 px-4 py-3 text-sm text-gray-700">{{ message }}</p>
+          <p class="flash rounded-2xl bg-white shadow-md border border-gray-200 px-3 sm:px-4 py-3 text-sm text-gray-700">{{ message }}</p>
           {% endfor %}
         </section>
         {% endif %}

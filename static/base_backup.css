@@ -25,19 +25,13 @@
   box-sizing: border-box;
 }
 
-html,
-body {
-  max-width: 100%;
-  overflow-x: clip;
-}
-
 body {
   margin: 0;
   color: var(--color-text);
   background: var(--color-bg);
   font-family: "Manrope", "Inter", "Avenir Next", "Segoe UI", Arial, sans-serif;
-  font-size: 0.92rem;
-  line-height: 1.5;
+  font-size: 0.95rem;
+  line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -58,17 +52,17 @@ h3 {
 }
 
 h1 {
-  font-size: 1.65rem;
+  font-size: 2rem;
   font-weight: 700;
 }
 
 h2 {
-  font-size: 1.2rem;
+  font-size: 1.35rem;
   font-weight: 650;
 }
 
 h3 {
-  font-size: 0.98rem;
+  font-size: 1.02rem;
   font-weight: 600;
 }
 
@@ -76,6 +70,8 @@ a {
   color: #38424d;
   text-decoration: none;
 }
+
+
 
 .app-header {
   position: sticky;
@@ -100,13 +96,11 @@ a {
   justify-content: space-between;
   width: 100%;
   padding: var(--space-2) 0;
-  gap: var(--space-2);
 }
 
 .nav-left {
   display: flex;
   align-items: center;
-  min-width: 0;
 }
 
 .nav-right {
@@ -117,7 +111,7 @@ a {
 
 .brand {
   font-weight: 700;
-  font-size: 1.05rem;
+  font-size: 19px;
   letter-spacing: -0.01em;
   color: var(--color-text);
 }
@@ -134,7 +128,6 @@ a {
   background: #fff;
   box-shadow: 0 3px 10px rgba(27, 23, 20, 0.08);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
-  flex-shrink: 0;
 }
 
 .avatar-button:hover {
@@ -149,11 +142,7 @@ a {
 }
 
 .nav-toggle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  min-height: 40px;
+  display: block;
   font-size: 22px;
   background: none;
   border: none;
@@ -174,7 +163,7 @@ a {
 .nav-menu {
   position: absolute;
   top: 60px;
-  right: 12px;
+  right: 16px;
   background: #fff;
   border-radius: 12px;
   box-shadow: var(--shadow-pop);
@@ -182,7 +171,7 @@ a {
   display: none;
   flex-direction: column;
   gap: 10px;
-  width: min(220px, calc(100vw - 24px));
+  min-width: 180px;
   z-index: 60;
 }
 
@@ -214,21 +203,16 @@ a {
 .btn {
   border: 1px solid var(--color-line);
   border-radius: 10px !important;
-  min-height: 44px;
-  min-width: 0;
-  max-width: 100%;
-  padding: 10px 12px;
+  min-height: 40px;
+  padding: 0 var(--space-2);
   font: inherit;
   font-size: 0.82rem;
-  line-height: 1.25;
   font-weight: 540;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  text-align: center;
-  overflow-wrap: anywhere;
   background: var(--color-surface);
   color: var(--color-text);
   transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
@@ -290,11 +274,10 @@ a {
   border: 1px solid var(--color-line);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-soft);
-  min-width: 0;
 }
 
 .flash-wrap {
-  margin: var(--space-2) 0;
+  margin: var(--space-3) 0;
   display: grid;
   gap: var(--space-2);
 }
@@ -304,32 +287,32 @@ a {
   border-radius: var(--radius-md);
   border: 1px solid #f2dfb5;
   background: #fff9ea;
-  font-size: 0.88rem;
+  font-size: 0.9rem;
 }
 
 .auth-shell {
   min-height: calc(100vh - 72px);
   display: grid;
   place-items: center;
-  padding: var(--space-3);
+  padding: var(--space-4);
 }
 
 .auth-card {
   width: 100%;
   max-width: 400px;
-  padding: var(--space-3);
+  padding: var(--space-5);
   display: grid;
-  gap: var(--space-2);
+  gap: var(--space-3);
 }
 
 .auth-card h1 {
-  font-size: 1.25rem;
+  font-size: 1.4rem;
 }
 
 .field {
   display: grid;
   gap: var(--space-1);
-  font-size: 0.86rem;
+  font-size: 0.88rem;
 }
 
 .auth-form {
@@ -345,27 +328,21 @@ a {
 
 .panel-head {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: var(--space-2);
-  min-width: 0;
-}
-
-.panel-head > * {
-  min-width: 0;
 }
 
 input,
 select,
 textarea {
-  min-height: 44px;
+  min-height: 40px;
   border: 1px solid var(--color-line);
   border-radius: 10px;
-  padding: 10px 11px;
+  padding: 8px 11px;
   font: inherit;
   background: #fff;
   color: var(--color-text);
-  max-width: 100%;
 }
 
 input::placeholder,
@@ -384,62 +361,4 @@ textarea:focus {
 textarea {
   resize: vertical;
   line-height: 1.45;
-}
-
-@media (min-width: 640px) {
-  body {
-    font-size: 0.95rem;
-    line-height: 1.55;
-  }
-
-  h1 {
-    font-size: 1.85rem;
-  }
-
-  h2 {
-    font-size: 1.3rem;
-  }
-
-  h3 {
-    font-size: 1rem;
-  }
-
-  .brand {
-    font-size: 1.12rem;
-  }
-
-  .btn {
-    font-size: 0.84rem;
-  }
-
-  .flash-wrap {
-    margin: var(--space-3) 0;
-  }
-
-  .auth-card {
-    padding: var(--space-4);
-    gap: var(--space-3);
-  }
-}
-
-@media (min-width: 1024px) {
-  h1 {
-    font-size: 2rem;
-  }
-
-  h2 {
-    font-size: 1.35rem;
-  }
-
-  h3 {
-    font-size: 1.02rem;
-  }
-
-  .brand {
-    font-size: 19px;
-  }
-
-  .nav-menu {
-    right: 16px;
-  }
 }
