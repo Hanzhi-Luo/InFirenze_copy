@@ -57,18 +57,40 @@
     </header>
 
     <main class="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6 min-w-0 overflow-x-clip">
-      {% with messages = get_flashed_messages() %}
-        {% if messages %}
-        <section class="flash-wrap space-y-2">
-          {% for message in messages %}
-          <p class="flash rounded-2xl bg-white shadow-md border border-gray-200 px-3 sm:px-4 py-3 text-sm text-gray-700">{{ message }}</p>
-          {% endfor %}
-        </section>
-        {% endif %}
-      {% endwith %}
-
       {% block content %}{% endblock %}
     </main>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+      <section class="toast-container fixed left-1/2 -translate-x-1/2 bottom-4 w-[90%] max-w-md z-[9999] space-y-2 pointer-events-none" aria-live="polite" aria-atomic="true">
+        {% for category, message in messages %}
+        <article
+          class="toast transition-all duration-300 rounded-xl border px-4 py-3 shadow-lg flex items-start gap-3 pointer-events-auto
+          {% if category == 'success' %}
+            bg-green-50 text-green-700 border-green-200
+          {% elif category in ['error', 'danger'] %}
+            bg-red-50 text-red-700 border-red-200
+          {% else %}
+            bg-white text-gray-800 border-gray-200
+          {% endif %}"
+          data-toast-category="{{ category or 'default' }}"
+          role="status"
+        >
+          <span class="toast-icon mt-0.5 text-sm font-semibold">
+            {% if category == 'success' %}
+              ✓
+            {% elif category in ['error', 'danger'] %}
+              !
+            {% else %}
+              •
+            {% endif %}
+          </span>
+          <p class="text-sm leading-5 font-medium">{{ message }}</p>
+        </article>
+        {% endfor %}
+      </section>
+      {% endif %}
+    {% endwith %}
 
     <script>
       (function () {
@@ -103,6 +125,20 @@
           } else {
             window.location.assign(fallback);
           }
+        });
+
+        const toasts = Array.from(document.querySelectorAll(".toast"));
+        toasts.forEach((toast, index) => {
+          const stagger = index * 120;
+          setTimeout(() => {
+            toast.classList.add("show");
+          }, stagger);
+
+          setTimeout(() => {
+            toast.classList.remove("show");
+            toast.classList.add("hide");
+            setTimeout(() => toast.remove(), 320);
+          }, 2500 + stagger);
         });
       })();
     </script>

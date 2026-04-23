@@ -258,6 +258,21 @@ a {
   color: #303842;
 }
 
+.toast {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.toast.hide {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
 .btn-secondary:hover {
   background: #faf8f6;
   border-color: #d4cec7;
