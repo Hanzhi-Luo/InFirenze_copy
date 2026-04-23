@@ -56,8 +56,18 @@
           </div>
         </div>
 
-        <button type="submit" class="btn btn-primary">Search</button>
-        <button type="button" id="reset-button" class="btn btn-secondary">Reset</button>
+        <button type="submit" class="btn btn-primary filter-icon-btn" aria-label="Search events">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M11 4a7 7 0 1 0 4.53 12.34l4.06 4.06 1.41-1.41-4.06-4.06A7 7 0 0 0 11 4Zm0 2a5 5 0 1 1 0 10 5 5 0 0 1 0-10Z"/>
+          </svg>
+          <span class="filter-btn-label">Search</span>
+        </button>
+        <button type="button" id="reset-button" class="btn btn-secondary filter-icon-btn" aria-label="Reset filters">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M12 5a7 7 0 1 1-6.41 4.2H3V7h5v5H6V9.97A5 5 0 1 0 12 7a5.05 5.05 0 0 0-3.54 1.46L7.04 7.04A7 7 0 0 1 12 5Z"/>
+          </svg>
+          <span class="filter-btn-label">Reset</span>
+        </button>
       </form>
     </section>
 

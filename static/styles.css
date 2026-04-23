@@ -1,11 +1,11 @@
 .home-layout {
   position: relative;
-  min-height: calc(100dvh - 96px);
+  min-height: calc(100dvh - var(--header-height) - var(--header-gap));
 }
 
 .home-map-panel {
   position: fixed;
-  top: 76px;
+  top: var(--header-height);
   left: 0;
   right: 0;
   bottom: 0;
@@ -23,13 +23,13 @@
 
 .home-overlay {
   position: fixed;
-  top: 84px;
+  top: calc(var(--header-height) + 6px);
   left: 0;
   right: 0;
   bottom: 0;
   z-index: 1000;
   pointer-events: none;
-  padding: 8px 10px max(10px, env(safe-area-inset-bottom));
+  padding: 8px 10px max(12px, env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -70,7 +70,7 @@
   min-height: 36px;
   height: 36px;
   border-radius: 999px;
-  font-size: 0.78rem;
+  font-size: 0.86rem;
   padding: 6px 11px;
   border-color: #e7e1da;
   background: #fff;
@@ -91,10 +91,27 @@
 .home-filters-card .btn {
   min-height: 36px;
   height: 36px;
-  padding: 6px 13px;
+  padding: 6px 10px;
   border-radius: 999px !important;
-  font-size: 0.76rem;
+  font-size: 0.85rem;
   white-space: nowrap;
+}
+
+.filter-icon-btn {
+  width: 36px;
+  min-width: 36px;
+  padding: 0 !important;
+  gap: 0;
+}
+
+.filter-icon-btn svg {
+  width: 17px;
+  height: 17px;
+  fill: currentColor;
+}
+
+.filter-btn-label {
+  display: none;
 }
 
 .home-filters-card .multi-menu {
@@ -152,14 +169,14 @@
 
 .sheet-head h2 {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: 1.03rem;
   line-height: 1.2;
   letter-spacing: -0.01em;
 }
 
 .sheet-subtitle {
   margin: 3px 0 0;
-  font-size: 0.72rem;
+  font-size: 0.8rem;
   color: var(--color-muted);
 }
 
@@ -169,7 +186,7 @@
   align-items: flex-end;
   gap: 1px;
   color: var(--color-muted);
-  font-size: 0.72rem;
+  font-size: 0.82rem;
   font-weight: 600;
   white-space: nowrap;
 }
@@ -196,18 +213,18 @@
 }
 
 .home-bottom-sheet .route-head h3 {
-  font-size: 0.84rem;
+  font-size: 0.9rem;
 }
 
 .home-bottom-sheet .route-head .btn {
   min-height: 34px;
   padding: 6px 10px;
   border-radius: 10px !important;
-  font-size: 0.74rem;
+  font-size: 0.8rem;
 }
 
 .home-bottom-sheet .route-mode-indicator {
-  font-size: 0.73rem;
+  font-size: 0.83rem;
 }
 
 .home-bottom-sheet #route-list {
@@ -230,7 +247,7 @@
   min-height: 34px;
   padding: 6px 8px;
   border-radius: 10px !important;
-  font-size: 0.72rem;
+  font-size: 0.78rem;
 }
 
 .home-bottom-sheet .events-list {
@@ -250,12 +267,12 @@
 
 .home-bottom-sheet .event-item h3 {
   margin: 0;
-  font-size: 0.86rem;
+  font-size: 0.96rem;
   line-height: 1.25;
 }
 
 .home-bottom-sheet .event-item p {
-  font-size: 0.73rem;
+  font-size: 0.84rem;
   line-height: 1.35;
 }
 
@@ -264,7 +281,7 @@
   margin-top: 3px;
   min-height: 30px;
   padding: 4px 10px;
-  font-size: 0.71rem;
+  font-size: 0.8rem;
   border-radius: 999px !important;
 }
 
@@ -390,7 +407,7 @@
 
 .panel-head span {
   color: var(--color-muted);
-  font-size: 0.8rem;
+  font-size: 0.86rem;
 }
 
 .left-panel {
@@ -434,7 +451,7 @@
 
 .route-mode-indicator {
   margin: 0;
-  font-size: 0.8rem;
+  font-size: 0.86rem;
   color: var(--color-muted);
 }
 
@@ -542,7 +559,7 @@ body.route-mode-active .events-list .event-item {
 
 .event-item h3 {
   margin: 0 0 2px;
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: 620;
   line-height: 1.3;
   letter-spacing: -0.01em;
@@ -551,7 +568,7 @@ body.route-mode-active .events-list .event-item {
 
 .event-item p {
   margin: 0;
-  font-size: 0.8rem;
+  font-size: 0.86rem;
   line-height: 1.4;
   color: var(--color-muted);
   overflow-wrap: anywhere;
@@ -1352,14 +1369,14 @@ td {
   .home-layout {
     min-height: auto;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(360px, 44%);
-    gap: var(--space-3);
+    grid-template-columns: minmax(0, 1.05fr) minmax(420px, 0.95fr);
+    gap: var(--space-4);
   }
 
   .home-map-panel {
     grid-column: 2;
     position: sticky;
-    top: 86px;
+    top: calc(var(--header-height) + 8px);
     left: auto;
     right: auto;
     bottom: auto;
@@ -1422,7 +1439,18 @@ td {
     min-height: 42px;
     height: 42px;
     border-radius: 10px !important;
-    font-size: 0.8rem;
+    font-size: 0.84rem;
+  }
+
+  .filter-icon-btn {
+    width: auto;
+    min-width: 0;
+    padding: 0 12px !important;
+    gap: 6px;
+  }
+
+  .filter-btn-label {
+    display: inline;
   }
 
   .home-filters-card .multi-menu {
@@ -1459,7 +1487,7 @@ td {
   }
 
   .sheet-subtitle {
-    font-size: 0.78rem;
+    font-size: 0.82rem;
   }
 
   .sheet-meta {
@@ -1478,16 +1506,16 @@ td {
   }
 
   .home-bottom-sheet .route-head h3 {
-    font-size: 0.92rem;
+    font-size: 0.95rem;
   }
 
   .home-bottom-sheet .route-head .btn {
     min-height: 38px;
-    font-size: 0.78rem;
+    font-size: 0.82rem;
   }
 
   .home-bottom-sheet .route-mode-indicator {
-    font-size: 0.78rem;
+    font-size: 0.84rem;
   }
 
   .home-bottom-sheet #route-list {
@@ -1501,7 +1529,7 @@ td {
 
   .home-bottom-sheet .route-actions .btn {
     min-height: 38px;
-    font-size: 0.78rem;
+    font-size: 0.82rem;
   }
 
   .home-bottom-sheet .events-list {
@@ -1518,16 +1546,16 @@ td {
   }
 
   .home-bottom-sheet .event-item h3 {
-    font-size: 0.95rem;
+    font-size: 1rem;
   }
 
   .home-bottom-sheet .event-item p {
-    font-size: 0.8rem;
+    font-size: 0.84rem;
   }
 
   .home-bottom-sheet .event-item .save-event-btn {
     min-height: 34px;
-    font-size: 0.76rem;
+    font-size: 0.8rem;
   }
 
   .filters-row {
