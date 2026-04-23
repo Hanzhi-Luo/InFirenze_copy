@@ -236,8 +236,10 @@ def api_geocode():
 
 @events_bp.route("/submit_event", methods=["GET", "POST"])
 @events_bp.route("/submit-event", methods=["GET", "POST"])
-@login_required
 def submit_event():
+    if not current_user.is_authenticated:
+        return redirect(url_for("auth.login", next=request.url))
+
     form_data = {}
 
     if request.method == "POST":
@@ -348,8 +350,10 @@ def submit_event():
 
 @events_bp.route("/my-events")
 @events_bp.route("/my-submissions")
-@login_required
 def my_events():
+    if not current_user.is_authenticated:
+        return redirect(url_for("auth.login", next=request.url))
+
     user_events = (
         Event.query.filter_by(created_by=current_user.id)
         .order_by(Event.date.asc(), Event.start_time.asc())
@@ -454,8 +458,10 @@ def edit_my_event(event_id):
 
 
 @events_bp.route("/saved")
-@login_required
 def saved_page():
+    if not current_user.is_authenticated:
+        return redirect(url_for("auth.login", next=request.url))
+
     saved_event_rows = (
         SavedEvent.query.filter_by(user_id=current_user.id)
         .order_by(SavedEvent.created_at.desc())

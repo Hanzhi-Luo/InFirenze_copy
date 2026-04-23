@@ -1,5 +1,5 @@
 from flask import Blueprint, flash, redirect, render_template, request, url_for
-from flask_login import current_user, login_required, login_user, logout_user
+from flask_login import current_user, login_user, logout_user
 
 from models import User, db
 
@@ -56,8 +56,10 @@ def login():
             return redirect(url_for("auth.login"))
 
         login_user(user)
-        if user.role == "admin":
-            return redirect(url_for("admin.dashboard"))
+        flash("Welcome back!", "success")
+        next_url = request.args.get("next")
+        if next_url:
+            return redirect(next_url)
         return redirect(url_for("events.index"))
 
     return render_template("login.html")
@@ -70,8 +72,10 @@ def logout():
 
 
 @auth_bp.route("/profile", methods=["GET", "POST"])
-@login_required
 def profile():
+    if not current_user.is_authenticated:
+        return redirect(url_for("auth.login", next=request.url))
+
     if request.method == "POST":
         current_user.avatar_url = request.form.get("avatar_url", "").strip() or None
         current_user.display_name = request.form.get("display_name", "").strip() or None
