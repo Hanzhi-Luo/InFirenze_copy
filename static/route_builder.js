@@ -232,7 +232,7 @@ function renderEvents() {
       const isSaved = savedEventIds.has(event.id);
       return `
         <article class="event-item${isActive ? " is-active" : ""}${isInRoute ? " in-route" : ""}" data-id="${event.id}">
-          <h3>${event.title}</h3>
+          <h3><a href="/events/${event.id}" class="event-title-link">${escapeHtml(event.title)}</a></h3>
           <p>${event.date} · ${event.start_time} - ${event.end_time}</p>
           <p>${event.area} · ${event.category}</p>
           ${
@@ -364,6 +364,12 @@ resetBtn.addEventListener("click", () => {
 });
 
 eventsListEl.addEventListener("click", (event) => {
+  const titleLink = event.target.closest(".event-title-link");
+  if (titleLink) {
+    event.stopPropagation();
+    return;
+  }
+
   const saveBtn = event.target.closest(".save-event-btn");
   if (saveBtn) {
     toggleSaveEvent(Number(saveBtn.dataset.id));
