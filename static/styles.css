@@ -572,6 +572,17 @@ body.route-mode-active .events-list .event-item {
   margin: 0;
 }
 
+.leaflet-popup-close-button {
+  top: 6px !important;
+  right: 6px !important;
+  width: 28px !important;
+  height: 28px !important;
+  border-radius: 999px;
+  font-size: 19px !important;
+  line-height: 28px !important;
+  color: #5f5b56 !important;
+}
+
 .leaflet-popup-tip {
   background: #fff;
   border: 1px solid #ece7e1;
@@ -579,11 +590,10 @@ body.route-mode-active .events-list .event-item {
 }
 
 .event-popup {
-  min-width: 220px;
-  max-width: 260px;
-  display: grid;
-  gap: 4px;
-  padding: 10px 12px;
+  min-width: 210px;
+  max-width: 250px;
+  gap: 5px;
+  padding: 11px 12px;
 }
 
 .event-popup p,
@@ -605,7 +615,7 @@ body.route-mode-active .events-list .event-item {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  margin-top: 1px;
+  margin-top: 3px;
   font-size: 0.79rem;
   font-weight: 600;
   text-decoration: none;
@@ -631,6 +641,7 @@ body.route-mode-active .events-list .event-item {
 
 .event-detail-shell > * {
   width: 100%;
+  min-width: 0;
 }
 
 .event-detail-shell .back-row {
@@ -643,6 +654,8 @@ body.route-mode-active .events-list .event-item {
 .event-carousel {
   position: relative;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   overflow: hidden;
   padding: 0;
   z-index: 2;
@@ -657,6 +670,8 @@ body.route-mode-active .events-list .event-item {
 
 .carousel-viewport {
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   overflow: hidden;
   border-radius: 12px;
   pointer-events: auto;
@@ -664,15 +679,18 @@ body.route-mode-active .events-list .event-item {
 
 .carousel-track {
   display: flex;
+  flex-wrap: nowrap;
   transition: transform 260ms ease;
   will-change: transform;
   pointer-events: auto;
   width: 100%;
+  min-width: 0;
 }
 
 .carousel-slide {
   min-width: 100%;
   flex: 0 0 100%;
+  max-width: 100%;
   pointer-events: auto;
 }
 
@@ -781,9 +799,9 @@ body.route-mode-active .events-list .event-item {
   overflow-x: auto;
   overscroll-behavior-x: contain;
   scroll-snap-type: x proximity;
-  padding: 2px 8px 10px 2px;
-  margin-right: -4px;
-  scrollbar-gutter: stable both-edges;
+  padding: 2px 0 10px 0;
+  margin-right: 0;
+  scrollbar-gutter: auto;
 }
 
 .suggested-card {
@@ -972,5 +990,39 @@ td {
     flex-basis: 220px;
     min-width: 220px;
     max-width: 220px;
+  }
+
+  .leaflet-popup-close-button {
+    top: 5px !important;
+    right: 5px !important;
+    width: 30px !important;
+    height: 30px !important;
+    line-height: 30px !important;
+    font-size: 20px !important;
+  }
+
+  .event-popup {
+    min-width: 0;
+    width: min(200px, calc(100vw - 108px));
+    max-width: 200px;
+    gap: 4px;
+    padding: 9px 10px 10px;
+    padding-right: 14px;
+  }
+
+  .event-popup p,
+  .event-popup-meta {
+    font-size: 0.76rem;
+    line-height: 1.32;
+  }
+
+  .event-popup-title {
+    font-size: 0.86rem;
+    line-height: 1.3;
+  }
+
+  .event-popup-link {
+    margin-top: 2px;
+    font-size: 0.75rem;
   }
 }

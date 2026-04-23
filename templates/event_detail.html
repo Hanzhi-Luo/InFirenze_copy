@@ -8,7 +8,9 @@
 
 {% block content %}
 <section class="event-detail-shell">
-  {% include "_back_button.html" %}
+  <div class="back-row">
+    <a href="{{ url_for('events.index') }}" class="btn btn-secondary">Back</a>
+  </div>
 
   <article class="card event-carousel bg-white rounded-2xl shadow-md overflow-hidden">
     <button type="button" class="carousel-nav prev" id="carousel-prev" aria-label="Previous image">‹</button>
@@ -31,23 +33,21 @@
     <div class="carousel-dots" id="carousel-dots" aria-label="Image pagination"></div>
   </article>
 
-  <article class="card panel event-detail-card bg-white rounded-2xl shadow-md p-6 space-y-4">
-    <div class="panel-head">
+  <article class="card panel event-detail-card bg-white rounded-2xl shadow-md space-y-4">    <div class="panel-head">
       <h1 class="text-2xl font-bold text-gray-900">{{ event.title }}</h1>
       <span class="status-badge status-{{ event.status }}">{{ event.status }}</span>
     </div>
 
     {% if current_user.is_authenticated %}
     <div class="saved-actions">
-      {% if is_saved %}
-      <form method="post" action="{{ url_for('events.unsave_event', event_id=event.id) }}">
-        <button class="btn btn-secondary" type="submit">Saved</button>
-      </form>
-      {% else %}
-      <form method="post" action="{{ url_for('events.save_event', event_id=event.id) }}">
-        <button class="btn btn-secondary" type="submit">❤️ Save</button>
-      </form>
-      {% endif %}
+      <button
+        class="btn btn-secondary save-event-btn"
+        type="button"
+        data-id="{{ event.id }}"
+        data-saved="{{ 'true' if is_saved else 'false' }}"
+      >
+        {{ 'Saved' if is_saved else '❤️ Save' }}
+      </button>
     </div>
     {% endif %}
 
@@ -73,8 +73,7 @@
     </section>
   </article>
 
-  <article class="card panel bg-white rounded-2xl shadow-md p-6 space-y-4">
-    <div class="panel-head">
+   <article class="card panel bg-white rounded-2xl shadow-md space-y-4">    <div class="panel-head">
       <h2 class="text-xl font-semibold text-gray-900">Suggested Events</h2>
       <span class="text-sm text-gray-500">{{ suggested_events|length }} suggestions</span>
     </div>
@@ -111,12 +110,18 @@
 
     if (track && prev && next && dots) {
       const slides = Array.from(track.querySelectorAll(".carousel-slide"));
+      track.style.width = "100%";
+      track.style.maxWidth = "100%";
+      track.style.minWidth = "0";
+      track.style.flexWrap = "nowrap";
       let index = 0;
       const singleSlide = slides.length <= 1;
 
       slides.forEach((slide) => {
         slide.style.flex = "0 0 100%";
+        slide.style.width = "100%";
         slide.style.minWidth = "100%";
+        slide.style.maxWidth = "100%";
       });
 
       dots.innerHTML = slides
@@ -130,7 +135,7 @@
       const render = () => {
         if (slides.length === 0) return;
         index = Math.max(0, Math.min(index, slides.length - 1));
-        track.style.transform = `translateX(-${index * 100}%)`;
+        track.style.transform = `translate3d(-${index * 100}%, 0, 0)`;
         prev.classList.toggle("is-disabled", singleSlide || index === 0);
         next.classList.toggle("is-disabled", singleSlide || index === slides.length - 1);
         prev.classList.toggle("is-hidden", singleSlide);
@@ -160,6 +165,37 @@
       });
 
       render();
+    }
+
+    const saveButton = document.querySelector(".save-event-btn");
+    if (saveButton) {
+      saveButton.addEventListener("click", async () => {
+        const eventId = saveButton.dataset.id;
+        if (!eventId) return;
+
+        const currentlySaved = saveButton.dataset.saved === "true";
+        const endpoint = currentlySaved ? `/unsave-event/${eventId}` : `/save-event/${eventId}`;
+
+        saveButton.disabled = true;
+        try {
+          const response = await fetch(endpoint, {
+            method: "POST",
+            headers: {
+              "X-Requested-With": "XMLHttpRequest",
+            },
+          });
+
+          if (!response.ok) {
+            throw new Error(`Save toggle failed: ${response.status}`);
+          }
+
+          const nextSaved = !currentlySaved;
+          saveButton.dataset.saved = nextSaved ? "true" : "false";
+          saveButton.textContent = nextSaved ? "Saved" : "❤️ Save";
+        } finally {
+          saveButton.disabled = false;
+        }
+      });
     }
 
     const mapEl = document.getElementById("event-detail-map");

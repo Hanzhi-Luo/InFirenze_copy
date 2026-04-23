@@ -259,16 +259,34 @@ function renderMap(fitBoundsOnLoad = false) {
 
   const bounds = [];
   eventsData.forEach((event) => {
+    const areaCategory = [event.area, event.category]
+      .filter((value) => Boolean(value))
+      .map((value) => escapeHtml(value))
+      .join(" · ");
+    const dateTime = [
+      event.date,
+      event.start_time && event.end_time
+        ? `${event.start_time} - ${event.end_time}`
+        : event.start_time || event.end_time || "",
+    ]
+      .filter((value) => Boolean(value))
+      .map((value) => escapeHtml(value))
+      .join(" · ");
+
     const marker = L.marker([event.lat, event.lng], { icon: defaultIcon }).addTo(map);
     marker.bindPopup(
       `
-      <div class="event-popup">
-        <p class="event-popup-title">${escapeHtml(event.title)}</p>
-        <p class="event-popup-meta">${escapeHtml(event.area)} · ${escapeHtml(event.category)}</p>
-        <p class="event-popup-meta">${escapeHtml(event.date)} · ${escapeHtml(event.start_time)} - ${escapeHtml(event.end_time)}</p>
-        <a class="event-popup-link" href="/events/${event.id}">View Details <span aria-hidden="true">→</span></a>
-      </div>
-      `
+        <div class="event-popup event-popup--link-only">
+          <a class="event-popup-inline-link" href="/events/${event.id}">
+            ${escapeHtml(event.title)}
+          </a>
+        </div>
+      `,
+      {
+        maxWidth: 260,
+        className: "custom-popup custom-popup--compact",
+        closeButton: true
+      }
     );
     marker.on("click", () => {
       setActiveEvent(event.id, true);
