@@ -1668,3 +1668,21 @@ td {
     -webkit-backdrop-filter: none;
   }
 }
+.date-filter-control {
+  position: relative;
+}
+
+.date-filter-control input[type="date"] {
+  padding-left: 48px;
+}
+
+.date-filter-label {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-muted);
+  font-size: 0.86rem;
+  pointer-events: none;
+  z-index: 2;
+}
