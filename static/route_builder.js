@@ -11,6 +11,7 @@ const routeModeBtn = document.getElementById("route-mode-btn");
 const routeModeIndicator = document.getElementById("route-mode-indicator");
 const bottomSheetEl = document.getElementById("home-bottom-sheet");
 const sheetToggleBtn = document.getElementById("sheet-toggle-btn");
+const sheetHeadEl = bottomSheetEl ? bottomSheetEl.querySelector(".sheet-head") : null;
 
 const timeControl = document.getElementById("time-control");
 const categoryControl = document.getElementById("category-control");
@@ -65,6 +66,17 @@ let markers = [];
 const markerByEventId = new Map();
 let savedEventIds = new Set();
 const isAuthenticated = Boolean(window.APP_CONTEXT && window.APP_CONTEXT.isAuthenticated);
+const SHEET_SNAP_POINTS = {
+  collapsed: 32,
+  medium: 42,
+  expanded: 72,
+};
+let currentSheetState = "medium";
+let activeSheetPointerId = null;
+let dragStartY = 0;
+let dragStartHeightPx = 0;
+let hasDragged = false;
+let suppressSheetToggleClickUntil = 0;
 
 function escapeHtml(value) {
   return String(value)
@@ -219,6 +231,136 @@ function repositionOpenDropdowns() {
   });
 }
 
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function getSnapVhFromState(state) {
+  return SHEET_SNAP_POINTS[state] ?? SHEET_SNAP_POINTS.medium;
+}
+
+function getCurrentSheetHeightVh() {
+  if (!bottomSheetEl) return SHEET_SNAP_POINTS.medium;
+  const heightPx = bottomSheetEl.getBoundingClientRect().height;
+  if (!window.innerHeight) return SHEET_SNAP_POINTS.medium;
+  return (heightPx / window.innerHeight) * 100;
+}
+
+function setSheetHeight(vh, options = { animate: true }) {
+  if (!bottomSheetEl) return;
+  const { animate = true } = options;
+  bottomSheetEl.classList.toggle("is-dragging", !animate);
+  const clamped = clamp(vh, SHEET_SNAP_POINTS.collapsed, SHEET_SNAP_POINTS.expanded);
+  bottomSheetEl.style.height = `${clamped}dvh`;
+}
+
+function updateSheetStateClasses(state) {
+  if (!bottomSheetEl) return;
+  bottomSheetEl.classList.toggle("is-collapsed", state === "collapsed");
+  bottomSheetEl.classList.toggle("is-expanded", state === "expanded");
+  if (sheetToggleBtn) {
+    sheetToggleBtn.setAttribute("aria-expanded", state === "expanded" ? "true" : "false");
+  }
+}
+
+function invalidateMapAfterSheetTransition(delay = 280) {
+  if (!map) return;
+  window.setTimeout(() => map.invalidateSize(), delay);
+}
+
+function setSheetState(state, options = { animate: true }) {
+  if (!bottomSheetEl) return;
+  const { animate = true } = options;
+  currentSheetState = state;
+  updateSheetStateClasses(state);
+  setSheetHeight(getSnapVhFromState(state), { animate });
+  invalidateMapAfterSheetTransition(animate ? 280 : 0);
+}
+
+function getClosestSheetState(vh) {
+  const entries = Object.entries(SHEET_SNAP_POINTS);
+  let bestState = "medium";
+  let bestDistance = Number.POSITIVE_INFINITY;
+  entries.forEach(([state, point]) => {
+    const distance = Math.abs(vh - point);
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      bestState = state;
+    }
+  });
+  return bestState;
+}
+
+function isSheetDragActive() {
+  return activeSheetPointerId !== null;
+}
+
+function onSheetPointerDown(event) {
+  if (!bottomSheetEl || !isMobileViewport()) return;
+  if (event.pointerType === "mouse" && event.button !== 0) return;
+  if (isSheetDragActive()) return;
+
+  activeSheetPointerId = event.pointerId;
+  dragStartY = event.clientY;
+  dragStartHeightPx = bottomSheetEl.getBoundingClientRect().height;
+  hasDragged = false;
+
+  if (event.currentTarget && event.currentTarget.setPointerCapture) {
+    event.currentTarget.setPointerCapture(event.pointerId);
+  }
+
+  bottomSheetEl.classList.add("is-dragging");
+  event.preventDefault();
+}
+
+function onSheetPointerMove(event) {
+  if (!bottomSheetEl || !isSheetDragActive()) return;
+  if (event.pointerId !== activeSheetPointerId) return;
+
+  const deltaY = event.clientY - dragStartY;
+  if (Math.abs(deltaY) > 3) {
+    hasDragged = true;
+  }
+
+  const newHeightPx = dragStartHeightPx - deltaY;
+  const vh = (newHeightPx / window.innerHeight) * 100;
+  setSheetHeight(vh, { animate: false });
+  event.preventDefault();
+}
+
+function finishSheetDrag(event, canceled = false) {
+  if (!bottomSheetEl || !isSheetDragActive()) return;
+  if (event.pointerId !== activeSheetPointerId) return;
+
+  if (event.currentTarget && event.currentTarget.releasePointerCapture) {
+    try {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    } catch (_error) {
+      // no-op
+    }
+  }
+
+  bottomSheetEl.classList.remove("is-dragging");
+  const wasDragged = hasDragged;
+  activeSheetPointerId = null;
+
+  if (canceled) {
+    setSheetState(currentSheetState, { animate: true });
+    return;
+  }
+
+  if (!wasDragged) {
+    setSheetState(currentSheetState, { animate: true });
+    return;
+  }
+
+  const vh = getCurrentSheetHeightVh();
+  const closestState = getClosestSheetState(vh);
+  setSheetState(closestState, { animate: true });
+  suppressSheetToggleClickUntil = Date.now() + 350;
+  event.preventDefault();
+}
+
 function scrollEventCardIntoView(eventId) {
   if (!eventsListEl) return;
   const card = eventsListEl.querySelector(`.event-item[data-id="${eventId}"]`);
@@ -232,12 +374,8 @@ function scrollEventCardIntoView(eventId) {
 
 function ensureSheetExpanded() {
   if (!bottomSheetEl || !isMobileViewport() || !map) return;
-  if (!bottomSheetEl.classList.contains("is-expanded")) {
-    bottomSheetEl.classList.add("is-expanded");
-    if (sheetToggleBtn) {
-      sheetToggleBtn.setAttribute("aria-expanded", "true");
-    }
-    setTimeout(() => map.invalidateSize(), 230);
+  if (currentSheetState !== "expanded") {
+    setSheetState("expanded", { animate: true });
   }
 }
 
@@ -649,13 +787,28 @@ if (typeof Sortable !== "undefined") {
 }
 
 if (sheetToggleBtn && bottomSheetEl) {
+  sheetToggleBtn.addEventListener("pointerdown", onSheetPointerDown);
+  sheetToggleBtn.addEventListener("pointermove", onSheetPointerMove);
+  sheetToggleBtn.addEventListener("pointerup", (event) => finishSheetDrag(event, false));
+  sheetToggleBtn.addEventListener("pointercancel", (event) => finishSheetDrag(event, true));
   sheetToggleBtn.addEventListener("click", () => {
-    const expanded = bottomSheetEl.classList.toggle("is-expanded");
-    sheetToggleBtn.setAttribute("aria-expanded", expanded ? "true" : "false");
-    if (map) {
-      setTimeout(() => map.invalidateSize(), 230);
+    if (!isMobileViewport()) return;
+    if (Date.now() < suppressSheetToggleClickUntil) {
+      return;
+    }
+    if (currentSheetState === "expanded") {
+      setSheetState("medium", { animate: true });
+    } else {
+      setSheetState("expanded", { animate: true });
     }
   });
+}
+
+if (sheetHeadEl && bottomSheetEl) {
+  sheetHeadEl.addEventListener("pointerdown", onSheetPointerDown);
+  sheetHeadEl.addEventListener("pointermove", onSheetPointerMove);
+  sheetHeadEl.addEventListener("pointerup", (event) => finishSheetDrag(event, false));
+  sheetHeadEl.addEventListener("pointercancel", (event) => finishSheetDrag(event, true));
 }
 
 window.addEventListener("resize", repositionOpenDropdowns);
@@ -668,6 +821,15 @@ if (form) {
 }
 
 window.addEventListener("resize", () => {
+  if (bottomSheetEl) {
+    if (isMobileViewport()) {
+      setSheetState(currentSheetState, { animate: false });
+    } else {
+      bottomSheetEl.classList.remove("is-dragging", "is-collapsed", "is-expanded");
+      bottomSheetEl.style.height = "";
+      currentSheetState = "medium";
+    }
+  }
   if (map) {
     setTimeout(() => map.invalidateSize(), 120);
   }
@@ -676,6 +838,9 @@ window.addEventListener("resize", () => {
 (async function bootstrap() {
   if (!map || !form || !eventsListEl || !resultCountEl || !mapMetaEl || !routeListEl) {
     return;
+  }
+  if (bottomSheetEl && isMobileViewport()) {
+    setSheetState("medium", { animate: false });
   }
   map.invalidateSize();
   await refreshSavedEventIds();
