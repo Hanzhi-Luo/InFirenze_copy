@@ -21,7 +21,11 @@ const categoryLabel = document.getElementById("category-label");
 const mapEl = document.getElementById("map");
 
 const FLORENCE = [43.7696, 11.2558];
-const map = mapEl ? L.map(mapEl).setView(FLORENCE, 13) : null;
+const map = mapEl
+  ? L.map(mapEl, {
+      zoomControl: false,
+    }).setView(FLORENCE, 13)
+  : null;
 if (map) {
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19,
