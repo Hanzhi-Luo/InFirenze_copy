@@ -1,6 +1,56 @@
 .route-shell {
   display: grid;
   gap: var(--space-3);
+  padding-top: 10px;
+}
+
+.route-summary-card {
+  padding: 18px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 300px);
+  gap: 18px;
+  align-items: center;
+}
+
+.route-summary-copy {
+  min-width: 0;
+}
+
+.route-kicker {
+  margin: 0 0 6px;
+  width: fit-content;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #fff1ef;
+  color: var(--color-primary);
+  border: 1px solid rgba(240, 95, 90, 0.18);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.route-summary-copy h1 {
+  margin: 0;
+  font-size: 1.75rem;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+}
+
+.route-subtitle {
+  margin-top: 8px;
+  color: var(--color-muted);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.route-summary-actions {
+  display: grid;
+  gap: 10px;
+}
+
+.route-summary-actions .btn {
+  width: 100%;
 }
 
 .route-layout {
@@ -94,7 +144,8 @@
 }
 
 .route-save-feedback {
-  margin: var(--space-2) 0 0;
+  grid-column: 1 / -1;
+  margin: 0;
   font-size: 0.84rem;
   color: var(--color-muted);
   min-height: 1.2em;
@@ -144,6 +195,38 @@
 }
 
 @media (max-width: 980px) {
+  .route-shell {
+    padding-top: 18px;
+  }
+
+  .route-summary-card {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding: 16px;
+  }
+
+  .route-summary-copy h1 {
+    font-size: 1.35rem;
+    line-height: 1.15;
+  }
+
+  .route-subtitle {
+    font-size: 0.86rem;
+  }
+
+  .route-summary-actions {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .route-summary-actions .btn {
+    min-height: 44px;
+  }
+
+  #google-maps-btn {
+    order: 3;
+  }
+
   .route-layout {
     grid-template-columns: 1fr;
   }
@@ -156,5 +239,25 @@
   .info-wrap {
     max-height: none;
     overflow: visible;
+  }
+}
+
+@media (max-width: 640px) {
+  .route-shell {
+    padding-top: 22px;
+    gap: 14px;
+  }
+
+  .route-summary-card {
+    border-radius: 18px;
+  }
+
+  .route-summary-copy h1 {
+    font-size: 1.25rem;
+  }
+}
+@media (max-width: 980px) {
+  .route-shell {
+    padding-top: 72px;
   }
 }

@@ -109,7 +109,9 @@ function updateGoogleMapsLink(points) {
 
 function createMap(stops) {
   const first = stops[0] || { lat: 43.7696, lng: 11.2558 };
-  const map = L.map("route-map").setView([first.lat, first.lng], 13);
+  const map = L.map("route-map", {
+    zoomControl: !window.matchMedia("(max-width: 768px)").matches,
+  }).setView([first.lat, first.lng], 13);
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19,
     attribution: "&copy; OpenStreetMap contributors",
