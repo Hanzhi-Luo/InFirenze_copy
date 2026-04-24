@@ -235,30 +235,30 @@
 
 .home-bottom-sheet .route-builder {
   margin-bottom: 0;
-  padding: 10px;
-  gap: 8px;
-  border-radius: 12px;
+  padding: 12px;
+  gap: 10px;
+  border-radius: 16px;
   box-shadow: none;
 }
 
 .home-bottom-sheet .route-head {
-  align-items: center;
-  gap: 8px;
+  align-items: flex-start;
+  gap: 10px;
 }
 
 .home-bottom-sheet .route-head h3 {
-  font-size: 0.9rem;
+  font-size: 1rem;
 }
 
 .home-bottom-sheet .route-head .btn {
-  min-height: 34px;
-  padding: 6px 10px;
+  min-height: 36px;
+  padding: 8px 12px;
   border-radius: 10px !important;
-  font-size: 0.8rem;
+  font-size: 0.82rem;
 }
 
 .home-bottom-sheet .route-mode-indicator {
-  font-size: 0.83rem;
+  font-size: 0.82rem;
 }
 
 .home-bottom-sheet #route-list {
@@ -272,16 +272,16 @@
 }
 
 .home-bottom-sheet .route-actions {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 6px;
 }
 
 .home-bottom-sheet .route-actions .btn {
-  min-height: 34px;
-  padding: 6px 8px;
+  min-height: 36px;
+  padding: 8px 12px;
   border-radius: 10px !important;
-  font-size: 0.78rem;
+  font-size: 0.8rem;
 }
 
 .home-bottom-sheet .events-list {
@@ -466,28 +466,54 @@
 }
 
 .route-builder {
-  padding: var(--space-2);
+  border: 1px dashed #d9d0c7;
+  background: linear-gradient(180deg, #fcfaf7 0%, #f8f5f0 100%);
+  box-shadow: none;
+  border-radius: 16px;
+  padding: 12px;
   margin-bottom: var(--space-2);
   display: grid;
-  gap: var(--space-2);
+  gap: 10px;
 }
 
 .route-head {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: var(--space-2);
+  gap: 10px;
   flex-wrap: wrap;
+}
+
+.route-head-copy {
+  display: grid;
+  gap: 4px;
+}
+
+.route-kicker {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #7c6f61;
+  background: #efe7dc;
+  border: 1px solid #e2d8cb;
 }
 
 .route-head h3 {
   margin: 0;
+  font-size: 1rem;
+  line-height: 1.25;
 }
 
 .route-mode-indicator {
   margin: 0;
-  font-size: 0.86rem;
-  color: var(--color-muted);
+  font-size: 0.82rem;
+  color: #7b746d;
 }
 
 .route-mode-indicator.on {
@@ -507,30 +533,33 @@ body.route-mode-active .events-list .event-item {
 
 #route-list {
   margin: 0;
-  padding: 0;
+  padding: 8px 0 0;
   list-style: none;
   max-height: 180px;
   overflow-y: auto;
   color: var(--color-text);
   display: grid;
   gap: var(--space-2);
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .route-empty {
-  color: var(--color-muted);
+  padding: 8px 0;
+  color: #8a837c;
   font-size: 0.85rem;
 }
 
 .route-stop {
-  border: 1px solid var(--color-line);
+  border: 1px solid #e6ddd3;
   border-radius: var(--radius-sm);
-  background: var(--color-surface);
+  background: rgba(255, 255, 255, 0.8);
   padding: var(--space-1) var(--space-2);
   display: flex;
   align-items: center;
   gap: 8px;
   cursor: grab;
   min-width: 0;
+  box-shadow: none;
 }
 
 .route-stop:active {
@@ -552,13 +581,26 @@ body.route-mode-active .events-list .event-item {
 }
 
 .route-actions {
-  display: grid;
-  gap: var(--space-2);
-  grid-template-columns: minmax(0, 1fr);
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .route-actions .btn {
-  width: 100%;
+  min-height: 36px;
+  padding: 8px 12px;
+  border-radius: 10px !important;
+  width: auto;
+}
+
+#clear-route-btn {
+  background: transparent;
+  border-color: #ddd5cc;
+  color: #6f675f;
+}
+
+#build-route-btn {
+  box-shadow: 0 6px 14px rgba(240, 95, 90, 0.16);
 }
 
 .events-list {
@@ -1536,12 +1578,12 @@ td {
   }
 
   .home-bottom-sheet .route-builder {
-    padding: var(--space-2);
-    gap: var(--space-2);
+    padding: 12px;
+    gap: 10px;
   }
 
   .home-bottom-sheet .route-head h3 {
-    font-size: 0.95rem;
+    font-size: 1rem;
   }
 
   .home-bottom-sheet .route-head .btn {
@@ -1550,7 +1592,7 @@ td {
   }
 
   .home-bottom-sheet .route-mode-indicator {
-    font-size: 0.84rem;
+    font-size: 0.82rem;
   }
 
   .home-bottom-sheet #route-list {
@@ -1558,12 +1600,14 @@ td {
   }
 
   .home-bottom-sheet .route-actions {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    display: flex;
+    flex-wrap: wrap;
     gap: 8px;
   }
 
   .home-bottom-sheet .route-actions .btn {
     min-height: 38px;
+    padding: 8px 12px;
     font-size: 0.82rem;
   }
 
