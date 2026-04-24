@@ -18,6 +18,8 @@ const timeTrigger = document.getElementById("time-trigger");
 const categoryTrigger = document.getElementById("category-trigger");
 const timeLabel = document.getElementById("time-label");
 const categoryLabel = document.getElementById("category-label");
+const dateInput = document.getElementById("date-filter-input");
+const dateControl = dateInput ? dateInput.closest(".date-filter-control") : null;
 const mapEl = document.getElementById("map");
 
 const FLORENCE = [43.7696, 11.2558];
@@ -106,6 +108,11 @@ function updateMultiLabel(values, element, fallback) {
     element.textContent = `${values[0]} +${values.length - 1}`;
   }
   element.classList.remove("placeholder");
+}
+
+function updateDateLabel() {
+  if (!dateControl || !dateInput) return;
+  dateControl.classList.toggle("has-value", Boolean(dateInput.value));
 }
 
 function buildQueryString() {
@@ -519,6 +526,7 @@ if (resetBtn && form) {
     form.reset();
     updateMultiLabel([], timeLabel, "Time");
     updateMultiLabel([], categoryLabel, "Category");
+    updateDateLabel();
     closeDropdowns();
     fetchEvents();
   });
@@ -624,6 +632,10 @@ if (buildRouteBtn) {
 
 updateMultiLabel([], timeLabel, "Time");
 updateMultiLabel([], categoryLabel, "Category");
+if (dateInput) {
+  dateInput.addEventListener("change", updateDateLabel);
+  updateDateLabel();
+}
 updateRouteModeUI();
 
 if (typeof Sortable !== "undefined") {

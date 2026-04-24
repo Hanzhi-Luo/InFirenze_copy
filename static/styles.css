@@ -1676,6 +1676,10 @@ td {
   padding-left: 48px;
 }
 
+.date-filter-control.has-value input[type="date"] {
+  padding-left: 11px;
+}
+
 .date-filter-label {
   position: absolute;
   left: 14px;
@@ -1685,4 +1689,8 @@ td {
   font-size: 0.86rem;
   pointer-events: none;
   z-index: 2;
+}
+
+.date-filter-control.has-value .date-filter-label {
+  display: none;
 }
