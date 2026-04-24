@@ -37,6 +37,8 @@
 }
 
 .home-filters-card {
+  position: relative;
+  z-index: 1105;
   margin: 0;
   padding: 8px;
   border: 1px solid rgba(233, 228, 221, 0.85);
@@ -52,6 +54,7 @@
   gap: 8px;
   overflow-x: auto;
   overscroll-behavior-x: contain;
+  overscroll-behavior-y: contain;
   white-space: nowrap;
   scrollbar-width: none;
 }
@@ -61,7 +64,13 @@
 }
 
 .home-filters-card .filter-control {
+  position: relative;
+  z-index: 1;
   flex: 0 0 auto;
+}
+
+.home-filters-card .filter-control.is-open {
+  z-index: 1110;
 }
 
 .home-filters-card .filter-control > input,
@@ -119,9 +128,18 @@
   min-width: 180px;
   max-width: min(300px, calc(100vw - 1.4rem));
   z-index: 1260;
+  pointer-events: auto;
+  overscroll-behavior: contain;
+}
+
+.home-filters-card .filter-control.is-open .multi-menu {
+  z-index: 1400;
+  pointer-events: auto;
 }
 
 .home-bottom-sheet {
+  position: relative;
+  z-index: 1090;
   pointer-events: auto;
   background: rgba(255, 255, 255, 0.97);
   border: 1px solid rgba(229, 223, 215, 0.95);
@@ -1642,5 +1660,11 @@ td {
     min-width: 248px;
     flex-basis: 248px;
     max-width: 248px;
+  }
+}
+@media (max-width: 1023px) {
+  .home-filters-card {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 }

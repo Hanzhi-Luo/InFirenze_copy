@@ -18,13 +18,16 @@ const timeTrigger = document.getElementById("time-trigger");
 const categoryTrigger = document.getElementById("category-trigger");
 const timeLabel = document.getElementById("time-label");
 const categoryLabel = document.getElementById("category-label");
+const mapEl = document.getElementById("map");
 
 const FLORENCE = [43.7696, 11.2558];
-const map = L.map("map").setView(FLORENCE, 13);
-L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-  maxZoom: 19,
-  attribution: "&copy; OpenStreetMap contributors",
-}).addTo(map);
+const map = mapEl ? L.map(mapEl).setView(FLORENCE, 13) : null;
+if (map) {
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19,
+    attribution: "&copy; OpenStreetMap contributors",
+  }).addTo(map);
+}
 
 const defaultIcon = new L.Icon({
   iconUrl:
@@ -74,12 +77,20 @@ function getSelectedValues(selector) {
 
 function closeDropdowns(exceptId = "") {
   [timeControl, categoryControl].forEach((control) => {
-    if (!control || control.id === exceptId) return;
+    if (!control) return;
+    if (control.id === exceptId) {
+      if (control.classList.contains("is-open")) {
+        positionDropdown(control);
+      }
+      return;
+    }
     control.classList.remove("is-open");
+    resetDropdownPosition(control);
   });
 }
 
 function updateMultiLabel(values, element, fallback) {
+  if (!element) return;
   if (values.length === 0) {
     element.textContent = fallback;
     element.classList.add("placeholder");
@@ -94,6 +105,7 @@ function updateMultiLabel(values, element, fallback) {
 }
 
 function buildQueryString() {
+  if (!form) return "";
   const params = new URLSearchParams();
   const selectedDate = form.elements.date.value;
   const selectedArea = form.elements.area.value;
@@ -115,7 +127,89 @@ function isMobileViewport() {
   return window.matchMedia("(max-width: 1023px)").matches;
 }
 
+function isMobileDropdownMode() {
+  return window.matchMedia("(max-width: 1023px)").matches;
+}
+
+function getDropdownMenu(control) {
+  if (!control) return null;
+  return control.querySelector(".multi-menu");
+}
+
+function getDropdownAnchor(control) {
+  if (!control) return null;
+  return (
+    control.querySelector(".filter-trigger") ||
+    control.querySelector("select") ||
+    control.querySelector("input") ||
+    control
+  );
+}
+
+function resetDropdownPosition(control) {
+  const menu = getDropdownMenu(control);
+  if (!menu) return;
+  menu.style.position = "";
+  menu.style.top = "";
+  menu.style.left = "";
+  menu.style.width = "";
+  menu.style.maxHeight = "";
+  menu.style.zIndex = "";
+  menu.style.pointerEvents = "";
+}
+
+function positionDropdown(control) {
+  const menu = getDropdownMenu(control);
+  if (!menu) return;
+
+  if (!isMobileDropdownMode()) {
+    resetDropdownPosition(control);
+    return;
+  }
+
+  const anchor = getDropdownAnchor(control);
+  if (!anchor) return;
+
+  const triggerRect = anchor.getBoundingClientRect();
+  const viewportMaxWidth = window.innerWidth - 20;
+  const baseWidth = Math.min(220, viewportMaxWidth);
+  const width = Math.min(
+    viewportMaxWidth,
+    Math.max(Math.round(triggerRect.width), baseWidth)
+  );
+  const left = Math.max(
+    10,
+    Math.min(triggerRect.left, window.innerWidth - width - 10)
+  );
+  const top = triggerRect.bottom + 8;
+  const availableHeight = Math.max(100, window.innerHeight - top - 16);
+  const maxHeight = Math.min(220, availableHeight);
+
+  menu.style.position = "fixed";
+  menu.style.top = `${top}px`;
+  menu.style.left = `${left}px`;
+  menu.style.width = `${width}px`;
+  menu.style.maxHeight = `${maxHeight}px`;
+  menu.style.zIndex = "1400";
+  menu.style.pointerEvents = "auto";
+}
+
+function openDropdown(control) {
+  if (!control) return;
+  closeDropdowns(control.id);
+  control.classList.add("is-open");
+  positionDropdown(control);
+}
+
+function repositionOpenDropdowns() {
+  [timeControl, categoryControl].forEach((control) => {
+    if (!control || !control.classList.contains("is-open")) return;
+    positionDropdown(control);
+  });
+}
+
 function scrollEventCardIntoView(eventId) {
+  if (!eventsListEl) return;
   const card = eventsListEl.querySelector(`.event-item[data-id="${eventId}"]`);
   if (!card) return;
   card.scrollIntoView({
@@ -126,7 +220,7 @@ function scrollEventCardIntoView(eventId) {
 }
 
 function ensureSheetExpanded() {
-  if (!bottomSheetEl || !isMobileViewport()) return;
+  if (!bottomSheetEl || !isMobileViewport() || !map) return;
   if (!bottomSheetEl.classList.contains("is-expanded")) {
     bottomSheetEl.classList.add("is-expanded");
     if (sheetToggleBtn) {
@@ -137,6 +231,7 @@ function ensureSheetExpanded() {
 }
 
 function updateRouteModeUI() {
+  if (!routeModeBtn || !routeModeIndicator) return;
   if (routeMode) {
     routeModeBtn.textContent = "Exit Route Builder";
     routeModeBtn.classList.add("route-mode-on");
@@ -153,6 +248,7 @@ function updateRouteModeUI() {
 }
 
 function renderRouteList() {
+  if (!routeListEl) return;
   if (selectedEventIds.length === 0) {
     routeListEl.innerHTML = '<li class="route-empty">No stops selected</li>';
     return;
@@ -257,6 +353,7 @@ async function toggleSaveEvent(eventId) {
 }
 
 function renderEvents() {
+  if (!resultCountEl || !eventsListEl) return;
   resultCountEl.textContent = String(eventsData.length);
   if (eventsData.length === 0) {
     eventsListEl.innerHTML = '<p class="empty">No approved events found.</p>';
@@ -285,6 +382,7 @@ function renderEvents() {
 }
 
 function renderMap(fitBoundsOnLoad = false) {
+  if (!map || !mapMetaEl) return;
   markers.forEach((marker) => marker.remove());
   markers = [];
   markerByEventId.clear();
@@ -352,6 +450,7 @@ function renderMap(fitBoundsOnLoad = false) {
 }
 
 async function fetchEvents() {
+  if (!form) return;
   const qs = buildQueryString();
   const url = qs ? `/api/events?${qs}` : "/api/events";
   const response = await fetch(url);
@@ -367,19 +466,27 @@ async function fetchEvents() {
   renderRouteList();
 }
 
-timeTrigger.addEventListener("click", (event) => {
-  event.stopPropagation();
-  const open = !timeControl.classList.contains("is-open");
-  closeDropdowns("time-control");
-  timeControl.classList.toggle("is-open", open);
-});
+if (timeTrigger && timeControl) {
+  timeTrigger.addEventListener("click", (event) => {
+    event.stopPropagation();
+    if (timeControl.classList.contains("is-open")) {
+      closeDropdowns();
+      return;
+    }
+    openDropdown(timeControl);
+  });
+}
 
-categoryTrigger.addEventListener("click", (event) => {
-  event.stopPropagation();
-  const open = !categoryControl.classList.contains("is-open");
-  closeDropdowns("category-control");
-  categoryControl.classList.toggle("is-open", open);
-});
+if (categoryTrigger && categoryControl) {
+  categoryTrigger.addEventListener("click", (event) => {
+    event.stopPropagation();
+    if (categoryControl.classList.contains("is-open")) {
+      closeDropdowns();
+      return;
+    }
+    openDropdown(categoryControl);
+  });
+}
 
 document.addEventListener("click", (event) => {
   if (!event.target.closest(".filter-control")) {
@@ -396,53 +503,63 @@ document.addEventListener("change", (event) => {
   }
 });
 
-form.addEventListener("submit", (event) => {
-  event.preventDefault();
-  fetchEvents();
-});
+if (form) {
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    fetchEvents();
+  });
+}
 
-resetBtn.addEventListener("click", () => {
-  form.reset();
-  updateMultiLabel([], timeLabel, "Time");
-  updateMultiLabel([], categoryLabel, "Category");
-  closeDropdowns();
-  fetchEvents();
-});
+if (resetBtn && form) {
+  resetBtn.addEventListener("click", () => {
+    form.reset();
+    updateMultiLabel([], timeLabel, "Time");
+    updateMultiLabel([], categoryLabel, "Category");
+    closeDropdowns();
+    fetchEvents();
+  });
+}
 
-eventsListEl.addEventListener("click", (event) => {
-  const titleLink = event.target.closest(".event-title-link");
-  if (titleLink) {
-    event.stopPropagation();
-    return;
-  }
+if (eventsListEl) {
+  eventsListEl.addEventListener("click", (event) => {
+    const titleLink = event.target.closest(".event-title-link");
+    if (titleLink) {
+      event.stopPropagation();
+      return;
+    }
 
-  const saveBtn = event.target.closest(".save-event-btn");
-  if (saveBtn) {
-    toggleSaveEvent(Number(saveBtn.dataset.id));
-    return;
-  }
+    const saveBtn = event.target.closest(".save-event-btn");
+    if (saveBtn) {
+      toggleSaveEvent(Number(saveBtn.dataset.id));
+      return;
+    }
 
-  const card = event.target.closest(".event-item");
-  if (!card) return;
-  const eventId = Number(card.dataset.id);
-  if (routeMode) {
-    addToRoute(eventId);
-    setActiveEvent(eventId, true, { scrollToCard: true, openPopup: true });
-  } else {
-    setActiveEvent(eventId, true, { scrollToCard: true, openPopup: true });
-  }
-});
+    const card = event.target.closest(".event-item");
+    if (!card) return;
+    const eventId = Number(card.dataset.id);
+    if (routeMode) {
+      addToRoute(eventId);
+      setActiveEvent(eventId, true, { scrollToCard: true, openPopup: true });
+    } else {
+      setActiveEvent(eventId, true, { scrollToCard: true, openPopup: true });
+    }
+  });
+}
 
-routeModeBtn.addEventListener("click", () => {
-  routeMode = !routeMode;
-  updateRouteModeUI();
-});
+if (routeModeBtn) {
+  routeModeBtn.addEventListener("click", () => {
+    routeMode = !routeMode;
+    updateRouteModeUI();
+  });
+}
 
-clearRouteBtn.addEventListener("click", () => {
-  selectedEventIds = [];
-  renderRouteList();
-  renderEvents();
-});
+if (clearRouteBtn) {
+  clearRouteBtn.addEventListener("click", () => {
+    selectedEventIds = [];
+    renderRouteList();
+    renderEvents();
+  });
+}
 
 if (saveRouteBtn) {
   saveRouteBtn.addEventListener("click", async () => {
@@ -476,28 +593,30 @@ if (saveRouteBtn) {
   });
 }
 
-buildRouteBtn.addEventListener("click", () => {
-  if (selectedEventIds.length === 0) {
-    alert("Select at least one event.");
-    return;
-  }
-  const selected = selectedEventIds
-    .map((id) => getEventById(id))
-    .filter(Boolean)
-    .map((event) => ({
-      id: event.id,
-      title: event.title,
-      lat: event.lat,
-      lng: event.lng,
-      area: event.area,
-      category: event.category,
-      date: event.date,
-      start_time: event.start_time,
-      end_time: event.end_time,
-    }));
-  const encoded = encodeURIComponent(JSON.stringify(selected));
-  window.open(`/route.html?events=${encoded}`, "_blank", "noopener");
-});
+if (buildRouteBtn) {
+  buildRouteBtn.addEventListener("click", () => {
+    if (selectedEventIds.length === 0) {
+      alert("Select at least one event.");
+      return;
+    }
+    const selected = selectedEventIds
+      .map((id) => getEventById(id))
+      .filter(Boolean)
+      .map((event) => ({
+        id: event.id,
+        title: event.title,
+        lat: event.lat,
+        lng: event.lng,
+        area: event.area,
+        category: event.category,
+        date: event.date,
+        start_time: event.start_time,
+        end_time: event.end_time,
+      }));
+    const encoded = encodeURIComponent(JSON.stringify(selected));
+    window.open(`/route.html?events=${encoded}`, "_blank", "noopener");
+  });
+}
 
 updateMultiLabel([], timeLabel, "Time");
 updateMultiLabel([], categoryLabel, "Category");
@@ -517,15 +636,31 @@ if (sheetToggleBtn && bottomSheetEl) {
   sheetToggleBtn.addEventListener("click", () => {
     const expanded = bottomSheetEl.classList.toggle("is-expanded");
     sheetToggleBtn.setAttribute("aria-expanded", expanded ? "true" : "false");
-    setTimeout(() => map.invalidateSize(), 230);
+    if (map) {
+      setTimeout(() => map.invalidateSize(), 230);
+    }
   });
 }
 
+window.addEventListener("resize", repositionOpenDropdowns);
+window.addEventListener("scroll", repositionOpenDropdowns, { passive: true });
+if (form) {
+  const filtersRow = form.querySelector(".filters-row");
+  if (filtersRow) {
+    filtersRow.addEventListener("scroll", repositionOpenDropdowns, { passive: true });
+  }
+}
+
 window.addEventListener("resize", () => {
-  setTimeout(() => map.invalidateSize(), 120);
+  if (map) {
+    setTimeout(() => map.invalidateSize(), 120);
+  }
 });
 
 (async function bootstrap() {
+  if (!map || !form || !eventsListEl || !resultCountEl || !mapMetaEl || !routeListEl) {
+    return;
+  }
   map.invalidateSize();
   await refreshSavedEventIds();
   await fetchEvents();
